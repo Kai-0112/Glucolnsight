@@ -1,3 +1,7 @@
+using Infrastructure.Entities;
+using Microsoft.EntityFrameworkCore;
+using System;
+
 namespace Glucolnsight
 {
     public class Program
@@ -8,6 +12,13 @@ namespace Glucolnsight
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+
+            builder.Services.AddDbContext<GlucoInsightContext>(opt =>
+            opt.UseSqlServer(builder.Configuration.GetConnectionString("GlucoInsightContext")));
+
+            //builder.Services.AddScoped<IGlucosePredictionService, GlucosePredictionService>();
+
+
 
             var app = builder.Build();
 
