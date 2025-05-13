@@ -15,7 +15,7 @@ public partial class GlucoInsightContext : DbContext
     {
     }
 
-    public virtual DbSet<CGMReading> CGMReading { get; set; }
+    public virtual DbSet<CGMLog> CGMLog { get; set; }
 
     public virtual DbSet<ExerciseCategory> ExerciseCategory { get; set; }
 
@@ -27,6 +27,8 @@ public partial class GlucoInsightContext : DbContext
 
     public virtual DbSet<FoodItem> FoodItem { get; set; }
 
+    public virtual DbSet<MealItem> MealItem { get; set; }
+
     public virtual DbSet<MealLog> MealLog { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -34,9 +36,9 @@ public partial class GlucoInsightContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<CGMReading>(entity =>
+        modelBuilder.Entity<CGMLog>(entity =>
         {
-            entity.HasKey(e => e.reading_id);
+            entity.HasKey(e => e.cgm_log_id);
 
             entity.Property(e => e.reading_time).HasColumnType("datetime");
         });
@@ -74,7 +76,15 @@ public partial class GlucoInsightContext : DbContext
         {
             entity.HasKey(e => e.food_id);
 
+            entity.Property(e => e.default_portion).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.food_name).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<MealItem>(entity =>
+        {
+            entity.HasKey(e => e.meal_item_id);
+
+            entity.Property(e => e.portion).HasColumnType("decimal(10, 2)");
         });
 
         modelBuilder.Entity<MealLog>(entity =>

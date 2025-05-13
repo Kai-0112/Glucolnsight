@@ -12,8 +12,4 @@ public partial class MealLog
     public DateTime meal_event_time { get; set; }
 
     public string meal_type { get; set; } = null!;
-
-    public int food_id { get; set; }
-
-    public double portion { get; set; }
 }

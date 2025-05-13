@@ -13,5 +13,5 @@ public partial class FoodItem
 
     public int glycemic_index { get; set; }
 
-    public double default_portion { get; set; }
+    public decimal default_portion { get; set; }
 }

@@ -1,4 +1,8 @@
+using ApplicationCore.Interfaces;
+using ApplicationCore.Services;
 using Infrastructure.Entities;
+using Infrastructure.ML;
+using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System;
 
@@ -16,7 +20,8 @@ namespace Glucolnsight
             builder.Services.AddDbContext<GlucoInsightContext>(opt =>
             opt.UseSqlServer(builder.Configuration.GetConnectionString("GlucoInsightContext")));
 
-            //builder.Services.AddScoped<IGlucosePredictionService, GlucosePredictionService>();
+            builder.Services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
+            builder.Services.AddScoped<IGlucosePredictionService, MlNetGlucosePredictionService>();
 
 
 
