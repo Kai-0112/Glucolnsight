@@ -31,8 +31,8 @@ public partial class GlucoInsightContext : DbContext
 
     public virtual DbSet<MealLog> MealLog { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer("Name=ConnectionStrings:GlucoInsightContext");
+    //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    //    => optionsBuilder.UseSqlServer("Name=ConnectionStrings:GlucoInsightContext");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

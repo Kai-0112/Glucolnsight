@@ -40,6 +40,8 @@ namespace Glucolnsight
 
             app.UseRouting();
 
+            app.MapControllers();
+
             app.UseAuthorization();
 
             app.MapControllerRoute(

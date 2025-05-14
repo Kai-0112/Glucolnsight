@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.ML.Data;
 
 namespace ApplicationCore.DTOs
 {
@@ -12,7 +8,8 @@ namespace ApplicationCore.DTOs
         public GlucosePrediction() { }
         public GlucosePrediction(float predictedBg) => PredictedBg = predictedBg;
 
-        // 必須 set; 讓 ML.NET 可以回填
+        // ML.NET 會把預測值塞到名稱為 "Score" 的欄位
+        [ColumnName("Score")]
         public float PredictedBg { get; set; }
     }
 }
