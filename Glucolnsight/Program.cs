@@ -1,10 +1,9 @@
 using ApplicationCore.Interfaces;
 using ApplicationCore.Services;
 using Infrastructure.Entities;
-using Infrastructure.ML;
 using Infrastructure.Repositories;
+using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
-using System;
 
 namespace Glucolnsight
 {
@@ -15,7 +14,9 @@ namespace Glucolnsight
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-            builder.Services.AddControllersWithViews();
+            builder.Services.AddControllersWithViews(); // for your MVC views
+
+            builder.Services.AddControllers(); // for attribute?routed APIs
 
             builder.Services.AddDbContext<GlucoInsightContext>(opt =>
             opt.UseSqlServer(builder.Configuration.GetConnectionString("GlucoInsightContext")));
@@ -23,6 +24,13 @@ namespace Glucolnsight
             builder.Services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
             builder.Services.AddScoped<IGlucosePredictionService, MlNetGlucosePredictionService>();
 
+            builder.Services.AddScoped<IFeatureBuilderService, EfFeatureBuilderService>();
+
+            builder.Services.AddLogging();
+
+            builder.Services.AddEndpointsApiExplorer();
+
+            builder.Services.AddSwaggerGen();
 
 
             var app = builder.Build();
@@ -39,6 +47,7 @@ namespace Glucolnsight
             app.UseStaticFiles();
 
             app.UseRouting();
+            app.UseAuthorization();
 
             app.MapControllers();
 

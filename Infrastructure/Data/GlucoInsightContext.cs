@@ -31,8 +31,14 @@ public partial class GlucoInsightContext : DbContext
 
     public virtual DbSet<MealLog> MealLog { get; set; }
 
-    //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    //    => optionsBuilder.UseSqlServer("Name=ConnectionStrings:GlucoInsightContext");
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        if (!optionsBuilder.IsConfigured)
+        {
+            optionsBuilder.UseSqlServer(
+                "Data Source=(localdb)\\mssqllocaldb;Initial Catalog=GlucoInsightDB;Integrated Security=True;");
+        }
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -63,6 +69,7 @@ public partial class GlucoInsightContext : DbContext
 
             entity.Property(e => e.exercise_event_time).HasColumnType("datetime");
             entity.Property(e => e.meal_relation).HasMaxLength(20);
+            entity.Property(e => e.mets).HasColumnType("decimal(5, 2)");
         });
 
         modelBuilder.Entity<FoodCategory>(entity =>
@@ -76,6 +83,7 @@ public partial class GlucoInsightContext : DbContext
         {
             entity.HasKey(e => e.food_id);
 
+            entity.Property(e => e.carb_portion_per_serving).HasComputedColumnSql("([carb_gram_per_serving]/(15.0))", false);
             entity.Property(e => e.default_portion).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.food_name).HasMaxLength(100);
         });

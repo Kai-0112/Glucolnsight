@@ -6,28 +6,34 @@ using System.Threading.Tasks;
 
 namespace ApplicationCore.DTOs
 {
+
     /// <summary>送進 ML 模型的特徵向量</summary>
     public class FeatureVector
     {
-        // 無參數 ctor 讓 ML.NET 反射
-        public FeatureVector() { }
 
-        // 方便呼叫端仍可用帶參數 ctor
-        public FeatureVector(float avgBgPrev30Min,
-                             float carbPortion,
-                             float exerciseMets,
-                             float hourOfDay)
+        public float AvgBgPrev30Min { get; set; }
+        public float CarbPortion { get; set; }
+        public float ExerciseMets { get; set; }
+        public float HourOfDay { get; set; }
+        public float AvgGlycemicIndex { get; set; }   // 最近一餐加权平均GI
+        public float ExerciseDuration { get; set; }   // 最近一次运动时长（分钟）
+
+        public FeatureVector() { }
+        public FeatureVector(
+        float avgBgPrev30Min,
+        float carbPortion,
+        float exerciseMets,
+        float hourOfDay,
+        float avgGlycemicIndex,
+        float exerciseDuration)
+
         {
             AvgBgPrev30Min = avgBgPrev30Min;
             CarbPortion = carbPortion;
             ExerciseMets = exerciseMets;
             HourOfDay = hourOfDay;
+            AvgGlycemicIndex = avgGlycemicIndex;
+            ExerciseDuration = exerciseDuration;
         }
-
-        // set; 一定要有
-        public float AvgBgPrev30Min { get; set; }
-        public float CarbPortion { get; set; }
-        public float ExerciseMets { get; set; }
-        public float HourOfDay { get; set; }
     }
 }

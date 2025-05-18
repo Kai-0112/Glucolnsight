@@ -14,4 +14,10 @@ public partial class FoodItem
     public int glycemic_index { get; set; }
 
     public decimal default_portion { get; set; }
+
+    public double? serving_weight_g { get; set; }
+
+    public double? carb_gram_per_serving { get; set; }
+
+    public double? carb_portion_per_serving { get; set; }
 }

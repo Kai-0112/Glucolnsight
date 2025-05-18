@@ -18,4 +18,6 @@ public partial class ExerciseLog
     public int duration_min { get; set; }
 
     public int sets_count { get; set; }
+
+    public decimal? mets { get; set; }
 }
