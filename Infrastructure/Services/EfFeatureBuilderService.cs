@@ -17,6 +17,24 @@ namespace Infrastructure.Services
 
         public async Task<FeatureVector> BuildAsync(int userId, DateTime predictTime)
         {
+            const int P = 4; // 滑動視窗長度
+
+            // 1. 讀取過去 P 筆血糖 (reading_time < predictTime)
+            var lastBgs = await _ctx.CGMLog
+                .Where(l => l.user_id == userId
+                         && l.reading_time < predictTime
+                         && l.glucose_mgdl.HasValue)
+                .OrderByDescending(l => l.reading_time)
+                .Select(l => (float)l.glucose_mgdl.Value)
+                .Take(P)
+                .ToListAsync();
+
+            // 2. 反轉成由遠到近順序，並補零到長度 P
+            lastBgs.Reverse();
+            while (lastBgs.Count < P)
+                lastBgs.Insert(0, 0f);
+
+
             // ❶ 取前 30 分鐘平均 BG
             var from = predictTime.AddMinutes(-30);
             var avgBg = await _ctx.CGMLog
@@ -83,14 +101,16 @@ namespace Infrastructure.Services
                 .FirstOrDefaultAsync() ?? 0f;
 
 
-            // —— 返回包含所有特征的向量 ——  
-            return new FeatureVector(
-                avgBgPrev30Min: avgBg,
-                carbPortion: carb,
-                exerciseMets: mets,
-                hourOfDay: predictTime.Hour,
-                avgGlycemicIndex: avgGI,
-                exerciseDuration: duration);
+            // 最後建立 FeatureVector（用物件初始器方式）
+            var fv = new FeatureVector();
+            fv.PrevBgs = lastBgs.ToArray();
+            fv.AvgBgPrev30Min = avgBg;
+            fv.CarbPortion = carb;
+            fv.AvgGlycemicIndex = avgGI;
+            fv.ExerciseMets = mets;
+            fv.ExerciseDuration = duration;
+            fv.HourOfDay = predictTime.Hour;
+            return fv;
         }
     }
 }

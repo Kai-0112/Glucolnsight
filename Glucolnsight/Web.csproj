@@ -20,4 +20,14 @@
     <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
   </ItemGroup>
 
+	<ItemGroup>
+		<!-- 把新趨勢模型也加入輸出 -->
+
+		<None Include="MLModels\glucoseModel.zip">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+	
+	
+
 </Project>

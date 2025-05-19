@@ -12,6 +12,7 @@ using Infrastructure.Entities;
 // --------------------------------------------------
 // GlucoInsight.Train/Program.cs
 // 多步趨勢模型訓練與評估：滑動視窗歷史 BG + 食物/運動特徵
+// 儲存每一步模型至獨立檔案
 // --------------------------------------------------
 
 // 1. 設定 EF Core 連線
@@ -135,36 +136,32 @@ var enhancedMetrics = ml.Regression.Evaluate(enhancedModel.Transform(testDv), la
 Console.WriteLine($"Single-step Baseline MAE = {baselineMetrics.MeanAbsoluteError:F2}");
 Console.WriteLine($"Single-step Enhanced MAE = {enhancedMetrics.MeanAbsoluteError:F2}");
 
-// 7. 多步訓練 & 評估
+// 7. 多步訓練 & 評估，並同時儲存每一步模型
 string[] featureCols = new[] { nameof(Input.PrevBgs), nameof(Input.CarbPortion), nameof(Input.AvgGlycemicIndex), nameof(Input.ExerciseMets), nameof(Input.ExerciseDuration), nameof(Input.HourOfDay) };
 var multiStepPipeline = ml.Transforms
     .Concatenate("Features", featureCols)
     .Append(ml.Transforms.NormalizeMinMax("Features"));
 
-Console.WriteLine("▶ Training & evaluating 8 separate models:");
+Console.WriteLine("▶ Training, evaluating & saving 8 models:");
+Directory.CreateDirectory("MLModels");
 for (int k = 1; k <= 8; k++)
 {
-    var stepPipe = multiStepPipeline.Append(
+    var stepPipeline = multiStepPipeline.Append(
         ml.Regression.Trainers.FastTree(labelColumnName: $"Label{k}", featureColumnName: "Features"));
-    var modelK = stepPipe.Fit(trainDv);
+    var modelK = stepPipeline.Fit(trainDv);
     var predDvK = modelK.Transform(testDv);
     var m = ml.Regression.Evaluate(predDvK, labelColumnName: $"Label{k}", scoreColumnName: "Score");
     Console.WriteLine($"  Step {k * 15,3}min → MAE={m.MeanAbsoluteError:F2}, RMSE={m.RootMeanSquaredError:F2}");
+    // 儲存每一步模型
+    var modelPath = Path.Combine("MLModels", $"glucoseModel_step{k}.zip");
+    ml.Model.Save(modelK, trainDv.Schema, modelPath);
+    Console.WriteLine($"    Saved model: {modelPath}");
 }
-
-// 8. 儲存最後示範模型 (step15)
-var finalModel = multiStepPipeline
-    .Append(ml.Regression.Trainers.FastTree(labelColumnName: "Label1"))
-    .Fit(trainDv);
-Directory.CreateDirectory("MLModels");
-ml.Model.Save(finalModel, trainDv.Schema, "MLModels/glucoseTrendModel.zip");
-Console.WriteLine("✅ Multi-step demo model saved to MLModels/glucoseTrendModel.zip");
 
 // --------- Input 類別 定義 ----------
 public class Input : FeatureVector
 {
-    [VectorType(4)]
-    public float[] PrevBgs { get; set; }
+    [VectorType(4)] public float[] PrevBgs { get; set; }
     [ColumnName("Label1")] public float Label1 { get; set; }
     [ColumnName("Label2")] public float Label2 { get; set; }
     [ColumnName("Label3")] public float Label3 { get; set; }
