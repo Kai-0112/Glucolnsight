@@ -19,8 +19,17 @@ namespace ApplicationCore.DTOs
         public float CarbPortion { get; set; }
         public float ExerciseMets { get; set; }
         public float HourOfDay { get; set; }
-        public float AvgGlycemicIndex { get; set; }   // 最近一餐加权平均GI
-        public float ExerciseDuration { get; set; }   // 最近一次运动时长（分钟）
+        public float AvgGlycemicIndex { get; set; } 
+        public float ExerciseDuration { get; set; }
+
+        public float MinutesSinceMeal { get; set; }
+        public float MinutesSinceExercise { get; set; }
+        public float LastMealItemCount { get; set; }
+        public float IsBreakfast { get; set; }
+        public float IsLunch { get; set; }
+        public float IsDinner { get; set; }
+        public float IsAfternoonTea { get; set; }
+        public float IsLateNight { get; set; }
 
         public FeatureVector() 
         {

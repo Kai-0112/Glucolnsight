@@ -6,6 +6,7 @@ using Microsoft.ML;
 using Microsoft.ML.Data;
 using ApplicationCore.DTOs;
 using Infrastructure.Entities;
+using System.Runtime.CompilerServices;
 
 #nullable disable
 
@@ -39,6 +40,7 @@ var meals = ctx.MealLog
         m.meal_id,
         m.user_id,
         m.meal_event_time,
+        m.meal_type,
         Items = ctx.MealItem
             .Where(mi => mi.meal_id == m.meal_id)
             .Join(ctx.FoodItem,
@@ -86,6 +88,23 @@ for (int i = P; i + 8 < logs.Count; i++)
     float mets = (float)(lastEx?.mets ?? 0m);
     float dur = (float)(lastEx?.duration_min ?? 0m);
 
+    // 時間差 & 餐型 one-hot
+    float minutesSinceMeal = lastMeal != null
+        ? (float)(time - lastMeal.meal_event_time).TotalMinutes
+        : 0f;
+    float lastMealItemCount = lastMeal != null ? lastMeal.Items.Count : 0;
+    float isBreakfast = lastMeal?.meal_type == "早餐" ? 1f : 0f;
+    float isLunch = lastMeal?.meal_type == "午餐" ? 1f : 0f;
+    float isDinner = lastMeal?.meal_type == "晚餐" ? 1f : 0f;
+    float isAfternoonTea = lastMeal?.meal_type == "下午茶" ? 1f : 0f;
+    float isLateNight = lastMeal?.meal_type == "消夜" ? 1f : 0f;
+
+    float minutesSinceExercise = lastEx != null
+        ? (float)(time - lastEx.exercise_event_time).TotalMinutes
+        : 0f;
+
+
+
     // 未來 8 點 Label
     var lbls = new float[8];
     for (int k = 1; k <= 8; k++)
@@ -100,6 +119,17 @@ for (int i = P; i + 8 < logs.Count; i++)
         ExerciseMets = mets,
         ExerciseDuration = dur,
         HourOfDay = time.Hour,
+
+        // 新增特徵
+        MinutesSinceMeal = minutesSinceMeal,
+        MinutesSinceExercise = minutesSinceExercise,
+        LastMealItemCount = lastMealItemCount,
+        IsBreakfast = isBreakfast,
+        IsLunch = isLunch,
+        IsDinner = isDinner,
+        IsAfternoonTea = isAfternoonTea,
+        IsLateNight = isLateNight,
+
         Label1 = lbls[0],
         Label2 = lbls[1],
         Label3 = lbls[2],
@@ -137,7 +167,22 @@ Console.WriteLine($"Single-step Baseline MAE = {baselineMetrics.MeanAbsoluteErro
 Console.WriteLine($"Single-step Enhanced MAE = {enhancedMetrics.MeanAbsoluteError:F2}");
 
 // 7. 多步訓練 & 評估，並同時儲存每一步模型
-string[] featureCols = new[] { nameof(Input.PrevBgs), nameof(Input.CarbPortion), nameof(Input.AvgGlycemicIndex), nameof(Input.ExerciseMets), nameof(Input.ExerciseDuration), nameof(Input.HourOfDay) };
+string[] featureCols = new[] { 
+    nameof(Input.PrevBgs), 
+    nameof(Input.CarbPortion), 
+    nameof(Input.AvgGlycemicIndex), 
+    nameof(Input.ExerciseMets), 
+    nameof(Input.ExerciseDuration), 
+    nameof(Input.HourOfDay),
+    nameof(Input.MinutesSinceMeal),
+    nameof(Input.MinutesSinceExercise),
+    nameof(Input.LastMealItemCount),
+    nameof(Input.IsBreakfast),
+    nameof(Input.IsLunch),
+    nameof(Input.IsDinner),
+    nameof(Input.IsAfternoonTea),
+    nameof(Input.IsLateNight),
+};
 var multiStepPipeline = ml.Transforms
     .Concatenate("Features", featureCols)
     .Append(ml.Transforms.NormalizeMinMax("Features"));
@@ -156,6 +201,12 @@ for (int k = 1; k <= 8; k++)
     var modelPath = Path.Combine("MLModels", $"glucoseModel_step{k}.zip");
     ml.Model.Save(modelK, trainDv.Schema, modelPath);
     Console.WriteLine($"    Saved model: {modelPath}");
+
+    //Debug
+    Console.WriteLine("Sample feature vector:");
+    var sample = data[0];
+    Console.WriteLine($"MinutesSinceMeal={sample.MinutesSinceMeal}, MinutesSinceExercise={sample.MinutesSinceExercise}, LastMealItemCount={sample.LastMealItemCount}, IsDinner={sample.IsDinner}");
+
 }
 
 // --------- Input 類別 定義 ----------
@@ -170,4 +221,14 @@ public class Input : FeatureVector
     [ColumnName("Label6")] public float Label6 { get; set; }
     [ColumnName("Label7")] public float Label7 { get; set; }
     [ColumnName("Label8")] public float Label8 { get; set; }
+
+    // 新增：
+    public float MinutesSinceMeal { get; set; }
+    public float MinutesSinceExercise { get; set; }
+    public float LastMealItemCount { get; set; }
+    public float IsBreakfast { get; set; }
+    public float IsLunch { get; set; }
+    public float IsDinner { get; set; }
+    public float IsAfternoonTea { get; set; }
+    public float IsLateNight { get; set; }
 }

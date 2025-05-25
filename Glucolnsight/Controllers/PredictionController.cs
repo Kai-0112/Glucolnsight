@@ -121,23 +121,72 @@ namespace GlucoInsight.Controllers
         [ProducesResponseType(typeof(PredictionMultiResultDto), 200)]
         [ProducesResponseType(400)]
         public async Task<IActionResult> PredictCustomMulti(
-            [FromBody] CustomPredictionRequest req)
+    [FromBody] CustomPredictionRequest req)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            // 1) 先用 DB 歷史建出基本特徵（PrevBgs, AvgBgPrev30Min, HourOfDay…）
             var fv = await _fb.BuildAsync(req.UserId, req.Time.UtcDateTime);
 
-            // (覆蓋食物/運動特徵的程式碼略，與之前相同)
+            // 2) **覆蓋** 前端送來的食物特徵
+            if (req.FoodInputs?.Any() == true)
+            {
+                var details = await _ctx.FoodItem
+                    .Where(f => req.FoodInputs.Select(x => x.FoodId).Contains(f.food_id))
+                    .Select(f => new {
+                        f.food_id,
+                        CarbPerServing = f.carb_gram_per_serving ?? 0.0,
+                        Gi = f.glycemic_index
+                    })
+                    .ToListAsync();
 
-            // 呼叫多步模型，取得 float[8]
+                float totalCarb = 0f, giSum = 0f, portionSum = 0f;
+                foreach (var fi in req.FoodInputs)
+                {
+                    var d = details.First(x => x.food_id == fi.FoodId);
+                    totalCarb += (float)(d.CarbPerServing * fi.Portion);
+                    giSum += d.Gi * fi.Portion;
+                    portionSum += fi.Portion;
+                }
+                fv.CarbPortion = totalCarb;
+                fv.AvgGlycemicIndex = portionSum > 0 ? giSum / portionSum : 0f;
+            }
+
+            // 3) **覆蓋** 前端送來的運動特徵
+            if (req.ExerciseInputs?.Any() == true)
+            {
+                var details = await _ctx.ExerciseLog
+                    .Where(el => req.ExerciseInputs.Select(x => x.ExerciseId)
+                                       .Contains(el.exercise_id))
+                    .OrderByDescending(el => el.exercise_event_time)
+                    .GroupBy(el => el.exercise_id)
+                    .Select(g => new {
+                        ExerciseId = g.Key,
+                        Mets = g.First().mets ?? 0m
+                    })
+                    .ToListAsync();
+
+                float totalMets = 0f, totalDur = 0f;
+                foreach (var ei in req.ExerciseInputs)
+                {
+                    var d = details.First(x => x.ExerciseId == ei.ExerciseId);
+                    totalMets += (float)d.Mets;
+                    totalDur += ei.DurationMin;
+                }
+                fv.ExerciseMets = totalMets;
+                fv.ExerciseDuration = totalDur;
+            }
+
+            // 4) 呼叫多步預測：這時 fv 裡所有特徵都包含你的手動輸入
             float[] preds = _ml.PredictAhead(fv);
-            var result = new PredictionMultiResultDto
+
+            return Ok(new PredictionMultiResultDto
             {
                 Input = fv,
                 PredictedBgs = preds
-            };
-            return Ok(result);
+            });
         }
+
     }
 }

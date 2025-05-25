@@ -39,22 +39,46 @@ namespace Infrastructure.Services
         public float[] PredictAhead(FeatureVector fv)
         {
             var results = new float[8];
-            for (int i = 0; i < 8; i++)
+            int baseHour = (int)fv.HourOfDay;                // 原始预测时刻的小时
+            float baseAvg = fv.AvgBgPrev30Min;           // 原始平均 BG（可选保留）
+
+            for (int k = 0; k < 8; k++)
             {
-                // 每支模型都輸出一個 Score
-                var engine = _ml.Model.CreatePredictionEngine<FeatureVector, SinglePrediction>(_models[i]);
-                results[i] = engine.Predict(fv).PredictedBg;
+                // ─── 1) 更新 HourOfDay ─────────────────────────
+                // 每 15 分钟算一次，(k+1)*15 分钟后的大致小时数
+                int addedHours = ((k + 1) * 15) / 60;
+                fv.HourOfDay = (baseHour + addedHours) % 24;
+
+                // （可选）如果你要把 AvgBgPrev30Min 保持过去 30 分钟的平均，
+                // 就不用重置它；否则你也可以让它等于 PrevBgs.Average()：
+                fv.AvgBgPrev30Min = fv.PrevBgs.Average();
+
+                // ─── 2) 用第 k 支模型做这一步的预测 ───────────────
+                var engine = _ml.Model
+                    .CreatePredictionEngine<FeatureVector, SinglePrediction>(_models[k]);
+                float pred = engine.Predict(fv).PredictedBg;
+                results[k] = pred;
+
+                // ─── 3) 滑动更新 PrevBgs ────────────────────────
+                var window = fv.PrevBgs.ToList();
+                window.RemoveAt(0);    // 去掉最旧一笔
+                window.Add(pred);      // 加上新预测
+                fv.PrevBgs = window.ToArray();
             }
+
             return results;
         }
+
+
 
         /// <summary>
         /// 單點預測：回傳 +15 分鐘的預測
         /// </summary>
         public float Predict(FeatureVector fv)
         {
-            var all = PredictAhead(fv);
-            return all.Length > 0 ? all[0] : 0f;
+            // 直接呼叫第 1 支模型（index 0）
+            var engine = _ml.Model.CreatePredictionEngine<FeatureVector, SinglePrediction>(_models[0]);
+            return engine.Predict(fv).PredictedBg;
         }
 
         private class SinglePrediction

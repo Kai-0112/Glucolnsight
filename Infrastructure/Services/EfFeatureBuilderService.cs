@@ -3,9 +3,7 @@ using ApplicationCore.Services;
 using Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Infrastructure.Services
@@ -19,7 +17,7 @@ namespace Infrastructure.Services
         {
             const int P = 4; // 滑動視窗長度
 
-            // 1. 讀取過去 P 筆血糖 (reading_time < predictTime)
+            // 1. 取過去 P 筆血糖
             var lastBgs = await _ctx.CGMLog
                 .Where(l => l.user_id == userId
                          && l.reading_time < predictTime
@@ -29,87 +27,97 @@ namespace Infrastructure.Services
                 .Take(P)
                 .ToListAsync();
 
-            // 2. 反轉成由遠到近順序，並補零到長度 P
+            // 2. 反轉 & 補零到長度 P
             lastBgs.Reverse();
             while (lastBgs.Count < P)
                 lastBgs.Insert(0, 0f);
 
-
-            // ❶ 取前 30 分鐘平均 BG
+            // 3. 計算前 30 分鐘平均血糖
             var from = predictTime.AddMinutes(-30);
-            var avgBg = await _ctx.CGMLog
-                           .Where(l => l.user_id == userId && l.reading_time >= from && l.reading_time <= predictTime)
-                           .AverageAsync(l => (float?)l.glucose_mgdl) ?? 0;
+            float avgBg = await _ctx.CGMLog
+                .Where(l => l.user_id == userId
+                         && l.reading_time >= from
+                         && l.reading_time <= predictTime)
+                .AverageAsync(l => (float?)l.glucose_mgdl) ?? 0f;
 
-            // ❷ 從 MealItem＋FoodItem 算最近一餐的碳水份數
-            var latestMealId = await _ctx.MealLog
+            // 4. 計算最近一餐碳水、GI
+            var latestMeal = await _ctx.MealLog
                 .Where(m => m.user_id == userId && m.meal_event_time <= predictTime)
                 .OrderByDescending(m => m.meal_event_time)
-                .Select(m => (int?)m.meal_id)
                 .FirstOrDefaultAsync();
 
-            // 先取出整餐的 carbPortion（decimal）
-            double carbDouble = 0d;
-            if (latestMealId.HasValue)
+            float carbPortion = 0f, avgGI = 0f;
+            if (latestMeal != null)
             {
-                carbDouble = await _ctx.MealItem
-                    .Where(mi => mi.meal_id == latestMealId.Value)
+                var items = await _ctx.MealItem
+                    .Where(mi => mi.meal_id == latestMeal.meal_id)
                     .Join(_ctx.FoodItem,
                           mi => mi.food_id,
                           f => f.food_id,
-                          (mi, f) => (double)mi.portion * (f.carb_portion_per_serving ?? 0.0))
-                    .SumAsync();
-            }
-
-            // 最後一次性 cast 成 float
-            float carb = (float)carbDouble;
-
-
-            // ❸ 取最近一次運動 METs
-            var mets = await _ctx.ExerciseLog
-                       .Where(e => e.user_id == userId && e.exercise_event_time <= predictTime)
-                       .OrderByDescending(e => e.exercise_event_time)
-                       .Select(e => (float?)(e.mets.HasValue ? e.mets.Value : 0m))
-                       .FirstOrDefaultAsync() ?? 0f;
-
-            // —— ❹ 取最近一餐的加权平均 GI ——  
-            float avgGI = 0f;
-            if (latestMealId.HasValue)
-            {
-                var q = _ctx.MealItem
-                    .Where(mi => mi.meal_id == latestMealId.Value)
-                    .Join(_ctx.FoodItem,
-                          mi => mi.food_id, f => f.food_id,
                           (mi, f) => new {
-                              Gi = (float)f.glycemic_index,
-                              Portion = (float)mi.portion
-                          });
-                var totalPortion = await q.SumAsync(x => x.Portion);
+                              Portion = (float)mi.portion,
+                              Carb = (float)(f.carb_portion_per_serving ?? 0.0),
+                              Gi = (float)f.glycemic_index
+                          })
+                    .ToListAsync();
+
+                var totalPortion = items.Sum(x => x.Portion);
                 if (totalPortion > 0)
                 {
-                    var weightedGi = await q.SumAsync(x => x.Gi * x.Portion);
-                    avgGI = weightedGi / totalPortion;
+                    carbPortion = items.Sum(x => x.Portion * x.Carb);
+                    avgGI = items.Sum(x => x.Portion * x.Gi) / totalPortion;
                 }
             }
 
-            // —— ❺ 取最近一次运动的时长 ——  
-            float duration = await _ctx.ExerciseLog
-                .Where(e => e.user_id == userId
-                         && e.exercise_event_time <= predictTime)
+            // 5. 計算最近一次運動 METs & 時長
+            var lastEx = await _ctx.ExerciseLog
+                .Where(e => e.user_id == userId && e.exercise_event_time <= predictTime)
                 .OrderByDescending(e => e.exercise_event_time)
-                .Select(e => (float?)e.duration_min)
-                .FirstOrDefaultAsync() ?? 0f;
+                .FirstOrDefaultAsync();
 
+            float mets = lastEx != null ? (float)(lastEx.mets ?? 0m) : 0f;
+            float duration = lastEx != null ? (float)(lastEx.duration_min) : 0f;
 
-            // 最後建立 FeatureVector（用物件初始器方式）
-            var fv = new FeatureVector();
-            fv.PrevBgs = lastBgs.ToArray();
-            fv.AvgBgPrev30Min = avgBg;
-            fv.CarbPortion = carb;
-            fv.AvgGlycemicIndex = avgGI;
-            fv.ExerciseMets = mets;
-            fv.ExerciseDuration = duration;
-            fv.HourOfDay = predictTime.Hour;
+            // 6. 建立基本 FeatureVector
+            var fv = new FeatureVector
+            {
+                PrevBgs = lastBgs.ToArray(),
+                AvgBgPrev30Min = avgBg,
+                CarbPortion = carbPortion,
+                AvgGlycemicIndex = avgGI,
+                ExerciseMets = mets,
+                ExerciseDuration = duration,
+                HourOfDay = predictTime.Hour
+            };
+
+            // 7. 增加時間差與餐型 one-hot 特徵
+            if (latestMeal != null)
+            {
+                fv.MinutesSinceMeal = (float)(predictTime - latestMeal.meal_event_time).TotalMinutes;
+                fv.LastMealItemCount = await _ctx.MealItem.CountAsync(mi => mi.meal_id == latestMeal.meal_id);
+                // one-hot meal_type
+                fv.IsBreakfast = latestMeal.meal_type == "早餐" ? 1f : 0f;
+                fv.IsLunch = latestMeal.meal_type == "午餐" ? 1f : 0f;
+                fv.IsDinner = latestMeal.meal_type == "晚餐" ? 1f : 0f;
+                fv.IsAfternoonTea = latestMeal.meal_type == "下午茶" ? 1f : 0f;
+                fv.IsLateNight = latestMeal.meal_type == "消夜" ? 1f : 0f;
+            }
+            else
+            {
+                fv.MinutesSinceMeal = 0f;
+                fv.LastMealItemCount = 0f;
+                fv.IsBreakfast = 
+                fv.IsLunch =
+                fv.IsDinner =
+                fv.IsAfternoonTea =
+                fv.IsLateNight = 0f;
+            }
+
+            // 8. 計算距離上次運動時間差
+            fv.MinutesSinceExercise = lastEx != null
+                ? (float)(predictTime - lastEx.exercise_event_time).TotalMinutes
+                : 0f;
+
             return fv;
         }
     }
