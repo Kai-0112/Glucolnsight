@@ -8,9 +8,16 @@ namespace ApplicationCore.DTOs
 {
     public class ExerciseInput
     {
-        public int ExerciseId { get; set; }   // ExerciseItem.exercise_id
-        public float DurationMin { get; set; }   // 使用者輸入的分鐘數
-        public float? SetsCount { get; set; }   // 可選：組數
-        public DateTimeOffset EventTime { get; set; }   // 新增
+        // 運動種類列表
+        public int ExerciseId { get; set; }
+
+        // 運動持續時間
+        public float DurationMin { get; set; }
+
+        // 運動組數
+        public float? SetsCount { get; set; }
+
+        // 當下運動時間
+        public DateTimeOffset EventTime { get; set; }
     }
 }

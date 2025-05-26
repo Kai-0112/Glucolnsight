@@ -7,21 +7,36 @@ using System.Threading.Tasks;
 
 namespace ApplicationCore.DTOs
 {
-
-    /// <summary>送進 ML 模型的特徵向量</summary>
+    /// <summary>
+    /// 送進 ML 模型的特徵
+    /// </summary>
     public class FeatureVector
     {
         // 新增：過去 4 筆血糖歷史
         [VectorType(4)]
+
+        // 過去 1 小時內每 15 分鐘的資料
         public float[] PrevBgs { get; set; }
 
+        // 前 30 分鐘的血糖波動
         public float AvgBgPrev30Min { get; set; }
+
+        // 碳水化合物計算
         public float CarbPortion { get; set; }
+
+        // 運動強度 (METs)
         public float ExerciseMets { get; set; }
+
+        // 一天的時間
         public float HourOfDay { get; set; }
-        public float AvgGlycemicIndex { get; set; } 
+
+        // 平均血糖指數
+        public float AvgGlycemicIndex { get; set; }
+
+        // 運動持續時間
         public float ExerciseDuration { get; set; }
 
+        // 用餐時段
         public float MinutesSinceMeal { get; set; }
         public float MinutesSinceExercise { get; set; }
         public float LastMealItemCount { get; set; }

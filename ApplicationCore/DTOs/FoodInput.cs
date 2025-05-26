@@ -6,10 +6,18 @@ using System.Threading.Tasks;
 
 namespace ApplicationCore.DTOs
 {
+    /// <summary>
+    /// 食物輸入資料
+    /// </summary>
     public class FoodInput
     {
-        public int FoodId { get; set; }   // FoodItem.food_id
-        public float Portion { get; set; }   // 使用者輸入的份數
-        public DateTimeOffset EventTime { get; set; }   // 新增
+        // 食物種類列表
+        public int FoodId { get; set; }
+
+        // 食物份數
+        public float Portion { get; set; }
+        
+        // 當下用餐時間
+        public DateTimeOffset EventTime { get; set; }
     }
 }
