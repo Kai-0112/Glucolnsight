@@ -7,6 +7,9 @@ using ApplicationCore.DTOs;
 
 namespace Infrastructure.Services
 {
+    /// <summary>
+    /// 把離線訓練好的 8 個 ML.NET 模型（+15、+30 … +120 分鐘）讀進記憶體，提供 ApplicationCore
+    /// </summary>
     public class MlNetGlucosePredictionService : IGlucosePredictionService
     {
         private readonly ITransformer[] _models;
@@ -14,8 +17,8 @@ namespace Infrastructure.Services
 
         public MlNetGlucosePredictionService()
         {
-            _ml = new MLContext();
-            _models = new ITransformer[8];
+            _ml = new MLContext();         
+            _models = new ITransformer[8]; // index 0 = +15min, 1 = +30min, … 7 = +120min
 
             // 執行目錄下的 MLModels 資料夾
             var exeDir = AppContext.BaseDirectory;
@@ -34,35 +37,35 @@ namespace Infrastructure.Services
         }
 
         /// <summary>
-        /// 預測未來 8 個步長的血糖值
+        /// 預測未來 8 個單點的血糖值
         /// </summary>
         public float[] PredictAhead(FeatureVector fv)
         {
-            var results = new float[8];
-            int baseHour = (int)fv.HourOfDay;                // 原始预测时刻的小时
-            float baseAvg = fv.AvgBgPrev30Min;           // 原始平均 BG（可选保留）
+            var results = new float[8];            // 回傳陣列；索引 0 = +15 min，索引 7 = +120 min
+            int baseHour = (int)fv.HourOfDay;      // 記住原本特徵向量裡的小時（0–23），後續每 4 個點才會進位 1 小時
+            float baseAvg = fv.AvgBgPrev30Min;     // 30 分鐘平均血糖(保留，尚未用到)
 
             for (int k = 0; k < 8; k++)
             {
-                // ─── 1) 更新 HourOfDay ─────────────────────────
-                // 每 15 分钟算一次，(k+1)*15 分钟后的大致小时数
+                // 以 15 分鐘為單位計算大概的 HourOfDay，模擬晝夜節律對血糖的影響
                 int addedHours = ((k + 1) * 15) / 60;
                 fv.HourOfDay = (baseHour + addedHours) % 24;
 
-                // （可选）如果你要把 AvgBgPrev30Min 保持过去 30 分钟的平均，
-                // 就不用重置它；否则你也可以让它等于 PrevBgs.Average()：
+                // 重新計算「過去 30 分鐘平均值」，讓特徵跟著新預測動態變化
                 fv.AvgBgPrev30Min = fv.PrevBgs.Average();
 
-                // ─── 2) 用第 k 支模型做这一步的预测 ───────────────
+                // 第 k 支模型 = +15×(k+1) min 的 FastTree 回歸
                 var engine = _ml.Model
                     .CreatePredictionEngine<FeatureVector, SinglePrediction>(_models[k]);
                 float pred = engine.Predict(fv).PredictedBg;
                 results[k] = pred;
-
-                // ─── 3) 滑动更新 PrevBgs ────────────────────────
                 var window = fv.PrevBgs.ToList();
-                window.RemoveAt(0);    // 去掉最旧一笔
-                window.Add(pred);      // 加上新预测
+
+                // 提供「最新」趨勢，並去掉舊的一筆
+                window.RemoveAt(0);             
+                window.Add(pred);
+
+                //依序回傳 +15、+30、…、+120 分鐘 8 個血糖預測值
                 fv.PrevBgs = window.ToArray();
             }
 
@@ -70,13 +73,12 @@ namespace Infrastructure.Services
         }
 
 
-
         /// <summary>
         /// 單點預測：回傳 +15 分鐘的預測
         /// </summary>
         public float Predict(FeatureVector fv)
         {
-            // 直接呼叫第 1 支模型（index 0）
+            // 直接呼叫第 1 支模型（index 0），僅單一個預測點而已
             var engine = _ml.Model.CreatePredictionEngine<FeatureVector, SinglePrediction>(_models[0]);
             return engine.Predict(fv).PredictedBg;
         }
