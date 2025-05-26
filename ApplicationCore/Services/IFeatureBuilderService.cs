@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace ApplicationCore.Services
 {
     /// <summary>
-    /// 使用者在特定時間點」所需的所有原始資料（最近血糖、餐點、運動…)
+    /// 使用者在特定時間點」所需的所有原始資料（最近血糖、餐點、運動…)，送進 ML 模型預測
     /// </summary>
     public interface IFeatureBuilderService
     {
