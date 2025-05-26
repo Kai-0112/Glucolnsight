@@ -32,9 +32,6 @@ namespace GlucoInsight.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// Demo endpoint: 回傳一組範例特徵向量的預測結果
-        /// </summary>
         [HttpGet("demo")]
         [ProducesResponseType(typeof(PredictionResultDto), 200)]
         public IActionResult Demo()
@@ -49,19 +46,14 @@ namespace GlucoInsight.Controllers
                 ExerciseDuration = 0f
             };
 
-            // _ml.Predict 現在回傳 float
             float bg = _ml.Predict(fv);
-            var result = new PredictionResultDto
+            return Ok(new PredictionResultDto
             {
                 Input = fv,
                 PredictedBg = bg
-            };
-            return Ok(result);
+            });
         }
 
-        /// <summary>
-        /// 單點預測：根據 userId 與 time，回傳下一筆預測
-        /// </summary>
         [HttpGet("")]
         [ProducesResponseType(typeof(PredictionResultDto), 200)]
         [ProducesResponseType(400)]
@@ -72,25 +64,19 @@ namespace GlucoInsight.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            _logger.LogInformation(
-                "Predict called: userId={UserId}, time={Time}",
-                userId, time);
+            _logger.LogInformation("Predict called: userId={UserId}, time={Time}",
+                                    userId, time);
 
             var fv = await _fb.BuildAsync(userId, time.UtcDateTime);
-
-            // _ml.Predict 現在回傳 float
             float bg = _ml.Predict(fv);
-            var result = new PredictionResultDto
+
+            return Ok(new PredictionResultDto
             {
                 Input = fv,
                 PredictedBg = bg
-            };
-            return Ok(result);
+            });
         }
 
-        /// <summary>
-        /// 自訂單點預測：結合 DB 歷史 + 前端事件
-        /// </summary>
         [HttpPost("custom")]
         [ProducesResponseType(typeof(PredictionResultDto), 200)]
         [ProducesResponseType(400)]
@@ -100,86 +86,135 @@ namespace GlucoInsight.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            // 1) 先拿 DB 歷史
             var fv = await _fb.BuildAsync(req.UserId, req.Time.UtcDateTime);
 
-            // (覆蓋食物/運動特徵的程式碼略，與之前相同)
+            // 2)Override: 用前端傳的食物事件時間 & 份量算 MinutesSinceMeal + 碳水/GI
+            if (req.FoodInputs?.Any() == true)
+            {
+                // 取最近一筆
+                var lastFood = req.FoodInputs
+                                  .OrderBy(f => f.EventTime)
+                                  .Last();
+                // 距離用餐分鐘
+                fv.MinutesSinceMeal =
+                    (float)(req.Time - lastFood.EventTime).TotalMinutes;
 
-            // 呼叫單點模型，並直接取得 float
-            float bg = _ml.Predict(fv);
-            var result = new PredictionResultDto
+                // 碳水 & GI
+                var details = await _ctx.FoodItem
+                    .Where(f => req.FoodInputs.Select(x => x.FoodId)
+                                               .Contains(f.food_id))
+                    .Select(f => new {
+                        f.food_id,
+                        Carb = (float)(f.carb_gram_per_serving ?? 0.0),
+                        Gi = (float)f.glycemic_index
+                    })
+                    .ToListAsync();
+
+                float totalCarb = 0f, giSum = 0f, portSum = 0f;
+                foreach (var fi in req.FoodInputs)
+                {
+                    var d = details.First(x => x.food_id == fi.FoodId);
+                    totalCarb += d.Carb * fi.Portion;
+                    giSum += d.Gi * fi.Portion;
+                    portSum += fi.Portion;
+                }
+
+                fv.CarbPortion = totalCarb;
+                fv.AvgGlycemicIndex = portSum > 0 ? giSum / portSum : 0f;
+            }
+
+            // 3)Override: 用前端運動事件時間 & 時長算 MinutesSinceExercise + Mets
+            if (req.ExerciseInputs?.Any() == true)
+            {
+                var lastEx = req.ExerciseInputs
+                                 .OrderBy(e => e.EventTime)
+                                 .Last();
+                fv.MinutesSinceExercise =
+                    (float)(req.Time - lastEx.EventTime).TotalMinutes;
+                fv.ExerciseDuration = lastEx.DurationMin;
+
+                // 從 DB 拿對應 mets
+                var mets = await _ctx.ExerciseLog
+                    .Where(e => e.exercise_id == lastEx.ExerciseId)
+                    .OrderByDescending(e => e.exercise_event_time)
+                    .Select(e => (float?)(e.mets ?? 0m))
+                    .FirstOrDefaultAsync() ?? 0f;
+                fv.ExerciseMets = mets;
+            }
+
+            // 4) 單點預測
+            float pred = _ml.Predict(fv);
+            return Ok(new PredictionResultDto
             {
                 Input = fv,
-                PredictedBg = bg
-            };
-            return Ok(result);
+                PredictedBg = pred
+            });
         }
 
-        /// <summary>
-        /// 自訂多步趨勢預測（未來 8 點，每點 15 分鐘）
-        /// </summary>
         [HttpPost("custom/multi")]
         [ProducesResponseType(typeof(PredictionMultiResultDto), 200)]
         [ProducesResponseType(400)]
         public async Task<IActionResult> PredictCustomMulti(
-    [FromBody] CustomPredictionRequest req)
+            [FromBody] CustomPredictionRequest req)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // 1) 先用 DB 歷史建出基本特徵（PrevBgs, AvgBgPrev30Min, HourOfDay…）
+            // 1) DB 歷史
             var fv = await _fb.BuildAsync(req.UserId, req.Time.UtcDateTime);
 
-            // 2) **覆蓋** 前端送來的食物特徵
+            // 2)Override 食物
             if (req.FoodInputs?.Any() == true)
             {
+                var lastFood = req.FoodInputs
+                                  .OrderBy(f => f.EventTime)
+                                  .Last();
+                fv.MinutesSinceMeal =
+                    (float)(req.Time - lastFood.EventTime).TotalMinutes;
+
                 var details = await _ctx.FoodItem
-                    .Where(f => req.FoodInputs.Select(x => x.FoodId).Contains(f.food_id))
+                    .Where(f => req.FoodInputs.Select(x => x.FoodId)
+                                               .Contains(f.food_id))
                     .Select(f => new {
                         f.food_id,
-                        CarbPerServing = f.carb_gram_per_serving ?? 0.0,
-                        Gi = f.glycemic_index
+                        Carb = (float)(f.carb_gram_per_serving ?? 0.0),
+                        Gi = (float)f.glycemic_index
                     })
                     .ToListAsync();
 
-                float totalCarb = 0f, giSum = 0f, portionSum = 0f;
+                float tc = 0f, giS = 0f, pS = 0f;
                 foreach (var fi in req.FoodInputs)
                 {
                     var d = details.First(x => x.food_id == fi.FoodId);
-                    totalCarb += (float)(d.CarbPerServing * fi.Portion);
-                    giSum += d.Gi * fi.Portion;
-                    portionSum += fi.Portion;
+                    tc += d.Carb * fi.Portion;
+                    giS += d.Gi * fi.Portion;
+                    pS += fi.Portion;
                 }
-                fv.CarbPortion = totalCarb;
-                fv.AvgGlycemicIndex = portionSum > 0 ? giSum / portionSum : 0f;
+                fv.CarbPortion = tc;
+                fv.AvgGlycemicIndex = pS > 0 ? giS / pS : 0f;
             }
 
-            // 3) **覆蓋** 前端送來的運動特徵
+            // 3)Override 運動
             if (req.ExerciseInputs?.Any() == true)
             {
-                var details = await _ctx.ExerciseLog
-                    .Where(el => req.ExerciseInputs.Select(x => x.ExerciseId)
-                                       .Contains(el.exercise_id))
-                    .OrderByDescending(el => el.exercise_event_time)
-                    .GroupBy(el => el.exercise_id)
-                    .Select(g => new {
-                        ExerciseId = g.Key,
-                        Mets = g.First().mets ?? 0m
-                    })
-                    .ToListAsync();
+                var lastEx = req.ExerciseInputs
+                                 .OrderBy(e => e.EventTime)
+                                 .Last();
+                fv.MinutesSinceExercise =
+                    (float)(req.Time - lastEx.EventTime).TotalMinutes;
+                fv.ExerciseDuration = lastEx.DurationMin;
 
-                float totalMets = 0f, totalDur = 0f;
-                foreach (var ei in req.ExerciseInputs)
-                {
-                    var d = details.First(x => x.ExerciseId == ei.ExerciseId);
-                    totalMets += (float)d.Mets;
-                    totalDur += ei.DurationMin;
-                }
-                fv.ExerciseMets = totalMets;
-                fv.ExerciseDuration = totalDur;
+                var mets = await _ctx.ExerciseLog
+                    .Where(e => e.exercise_id == lastEx.ExerciseId)
+                    .OrderByDescending(e => e.exercise_event_time)
+                    .Select(e => (float?)(e.mets ?? 0m))
+                    .FirstOrDefaultAsync() ?? 0f;
+                fv.ExerciseMets = mets;
             }
 
-            // 4) 呼叫多步預測：這時 fv 裡所有特徵都包含你的手動輸入
-            float[] preds = _ml.PredictAhead(fv);
+            // 4) 多步預測
+            var preds = _ml.PredictAhead(fv);
 
             return Ok(new PredictionMultiResultDto
             {
@@ -187,6 +222,5 @@ namespace GlucoInsight.Controllers
                 PredictedBgs = preds
             });
         }
-
     }
 }

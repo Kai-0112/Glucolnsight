@@ -11,5 +11,6 @@ namespace ApplicationCore.DTOs
         public int ExerciseId { get; set; }   // ExerciseItem.exercise_id
         public float DurationMin { get; set; }   // 使用者輸入的分鐘數
         public float? SetsCount { get; set; }   // 可選：組數
+        public DateTimeOffset EventTime { get; set; }   // 新增
     }
 }

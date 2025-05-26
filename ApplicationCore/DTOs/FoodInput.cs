@@ -10,5 +10,6 @@ namespace ApplicationCore.DTOs
     {
         public int FoodId { get; set; }   // FoodItem.food_id
         public float Portion { get; set; }   // 使用者輸入的份數
+        public DateTimeOffset EventTime { get; set; }   // 新增
     }
 }

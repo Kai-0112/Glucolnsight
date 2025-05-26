@@ -1,47 +1,78 @@
 ﻿@{
-    Layout = "_Layout";  // 預設 _Layout.cshtml
+    Layout = "_Layout";
 }
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
 
 <div id="app" class="container my-5">
-    <!-- Step 1：食物 -->
+    <!-- Step 1：設定模擬起點 -->
     <div v-if="step===1">
-        <h3>步驟 1：輸入飲食資料</h3>
+        <h3>步驟 1：模擬起點</h3>
         <div class="row mb-3">
-            <div class="col-md-8">
+            <div class="col-md-6">
+                <label for="predictTime" class="form-label">預測時刻</label>
+                <input id="predictTime" type="datetime-local" class="form-control" v-model="predictTime" />
+                <small class="form-text text-muted">預設為現在，或自訂未來/歷史時點</small>
+            </div>
+            <div class="col-md-6">
+                <label for="currentBg" class="form-label">當下血糖 (mg/dL)</label>
+                <input id="currentBg" type="number" class="form-control" v-model.number="currentBg" placeholder="請輸入當前血糖值" />
+            </div>
+        </div>
+        <button class="btn btn-success" v-on:click="goToStep2" :disabled="!currentBg">下一步：輸入飲食</button>
+    </div>
+
+    <!-- Step 2：輸入飲食資料，支援依類型篩選 -->
+    <div v-if="step===2">
+        <h3>步驟 2：輸入飲食資料</h3>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">食物類型</label>
+                <select class="form-select" v-model="selectedCategoryId">
+                    <option value="">── 全部類型 ──</option>
+                    <option v-for="c in categories" :key="c.food_category_id" :value="c.food_category_id">
+                        {{ c.food_type }}
+                    </option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">選擇食物</label>
                 <select class="form-select" v-model="selectedFoodId">
                     <option disabled value="">── 選擇食物 ──</option>
-                    <option v-for="f in foods" :key="f.food_id" :value="f.food_id">
+                    <option v-for="f in filteredFoods" :key="f.food_id" :value="f.food_id">
                         {{ f.food_name }} (GI {{ f.glycemic_index }})
                     </option>
                 </select>
             </div>
-            <div class="col-md-2">
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label class="form-label">份量</label>
                 <input type="number" class="form-control" v-model.number="selectedFoodPortion" min="1" />
             </div>
-            <div class="col-md-2">
-                <button class="btn btn-primary w-100" v-on:click ="addFood()">新增</button>
+            <div class="col-md-8 d-flex align-items-end">
+                <button class="btn btn-primary w-100" v-on:click="addFood">新增食物</button>
             </div>
         </div>
         <ul class="list-group mb-3">
-            <li class="list-group-item d-flex justify-content-between align-items-center"
-                v-for="(fi, i) in foodInputs" :key="i">
+            <li class="list-group-item" v-for="(fi, i) in foodInputs" :key="i">
                 {{ fi.name }}：{{ fi.portion }} 份
-                <div>
-                    <button class="btn btn-sm btn-outline-secondary me-1" v-on:click="changePortion(foodInputs, i, -1)">-</button>
-                    <button class="btn btn-sm btn-outline-secondary me-1" v-on:click="changePortion(foodInputs, i, +1)">+</button>
+                <span class="float-end">
+                    <button class="btn btn-sm btn-outline-secondary me-1" v-on:click="changePortion(foodInputs, i, -1, 'portion')">-</button>
+                    <button class="btn btn-sm btn-outline-secondary me-1" v-on:click="changePortion(foodInputs, i, +1, 'portion')">+</button>
                     <button class="btn btn-sm btn-danger" v-on:click="removeItem(foodInputs, i)">刪除</button>
-                </div>
+                </span>
             </li>
         </ul>
-        <button class="btn btn-success" v-on:click="step=2" :disabled="!foodInputs.length">下一步：運動</button>
+        <button class="btn btn-secondary me-2" v-on:click="step=1">上一步：模擬起點</button>
+        <button class="btn btn-success" v-on:click="goToStep3" :disabled="!foodInputs.length">下一步：輸入運動</button>
     </div>
 
-    <!-- Step 2：運動 -->
-    <div v-if="step===2">
-        <h3>步驟 2：輸入運動資料</h3>
+    <!-- Step 3：輸入運動資料，選擇時段：餐前／餐後 -->
+    <div v-if="step===3">
+        <h3>步驟 3：輸入運動資料</h3>
         <div class="row mb-3">
-            <div class="col-md-8">
+            <div class="col-md-6">
+                <label class="form-label">選擇運動</label>
                 <select class="form-select" v-model="selectedExId">
                     <option disabled value="">── 選擇運動 ──</option>
                     <option v-for="e in exercises" :key="e.exercise_id" :value="e.exercise_id">
@@ -49,67 +80,90 @@
                     </option>
                 </select>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-6">
+                <label class="form-label">運動時段</label>
+                <select class="form-select" v-model="selectedExPeriod">
+                    <option disabled value="">── 餐前／餐後 ──</option>
+                    <option value="BeforeMeal">餐前運動</option>
+                    <option value="AfterMeal">餐後運動</option>
+                </select>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label class="form-label">運動時長 (分鐘)</label>
                 <input type="number" class="form-control" v-model.number="selectedExDuration" min="1" />
             </div>
-            <div class="col-md-2">
-                <button class="btn btn-primary w-100" v-on:click="addExercise()">新增</button>
+            <div class="col-md-8 d-flex align-items-end">
+                <button class="btn btn-primary w-100" v-on:click="addExercise">新增運動</button>
             </div>
         </div>
         <ul class="list-group mb-3">
-            <li class="list-group-item d-flex justify-content-between align-items-center"
-                v-for="(ei, i) in exerciseInputs" :key="i">
-                {{ ei.name }}：{{ ei.durationMin }} 分
-                <div>
+            <li class="list-group-item" v-for="(ei, i) in exerciseInputs" :key="i">
+                {{ ei.name }}：{{ ei.durationMin }} 分 &nbsp;
+                <small class="text-muted">({{ ei.period === 'BeforeMeal' ? '餐前' : '餐後' }})</small>
+                <span class="float-end">
                     <button class="btn btn-sm btn-outline-secondary me-1" v-on:click="changePortion(exerciseInputs, i, -5, 'durationMin')">-5</button>
                     <button class="btn btn-sm btn-outline-secondary me-1" v-on:click="changePortion(exerciseInputs, i, +5, 'durationMin')">+5</button>
                     <button class="btn btn-sm btn-danger" v-on:click="removeItem(exerciseInputs, i)">刪除</button>
-                </div>
+                </span>
             </li>
         </ul>
-        <button class="btn btn-secondary me-2" v-on:click="step=1">上一步：食物</button>
-        <button class="btn btn-success" v-on:click="step=3" :disabled="!exerciseInputs.length">下一步：預測結果</button>
+        <button class="btn btn-secondary me-2" v-on:click="step=2">上一步：輸入飲食</button>
+        <button class="btn btn-success" v-on:click="goToStep4" :disabled="!exerciseInputs.length">下一步：預測結果</button>
     </div>
 
-    <!-- Step 3：結果 -->
-    <div v-if="step===3">
-        <h3>步驟 3：2 小時血糖趨勢預測</h3>
+    <!-- Step 4：顯示結果 -->
+    <div v-if="step===4">
+        <h3>步驟 4：2 小時血糖趨勢預測</h3>
         <canvas id="trendChart" height="200"></canvas>
         <div class="mt-3">
-            <button class="btn btn-secondary me-2" v-on:click="step=2">上一步：運動</button>
-            <button class="btn btn-success"v-on:click ="goToStep3":disabled="!exerciseInputs.length">下一步：預測結果</button>
+            <button class="btn btn-secondary me-2" v-on:click="step=3">上一步：輸入運動</button>
+            <button class="btn btn-success" v-on:click ="predict">重新預測</button>
         </div>
     </div>
 </div>
 
-<!-- Vue3 + Axios + Chart.js CDN -->
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     const { createApp } = Vue;
-
     createApp({
       data() {
         return {
           step: 1,
-          foods: [], exercises: [],
-          selectedFoodId:'', selectedFoodPortion:1,
-          selectedExId:'',  selectedExDuration:30,
+          predictTime: new Date().toISOString().slice(0,16),
+          currentBg: null,
+          categories: [], foods: [], exercises: [],
+          selectedCategoryId: '',
+          selectedFoodId: '', selectedFoodPortion: 1,
+          selectedExId: '', selectedExPeriod: '', selectedExDuration: 30,
           foodInputs: [], exerciseInputs: [],
-          chart:null, predictedBgs:[]
+          chart: null, predictedBgs: []
         };
       },
+      computed: {
+        filteredFoods() {
+          return this.selectedCategoryId
+            ? this.foods.filter(f => f.food_category_id === this.selectedCategoryId)
+            : this.foods;
+        }
+      },
       async mounted() {
-        // 載下拉清單
-        const [fres, eres] = await Promise.all([
+        const [catRes, foodRes, exRes] = await Promise.all([
+          axios.get('/api/v1/history/foodcategories'),
           axios.get('/api/v1/history/foods'),
           axios.get('/api/v1/history/exercises')
         ]);
-        this.foods = fres.data;
-        this.exercises = eres.data;
+        this.categories = catRes.data;
+        this.foods = foodRes.data;
+        this.exercises = exRes.data;
       },
       methods: {
+        goToStep2() { this.step = 2; },
+        goToStep3() { this.step = 3; },
+        goToStep4() { this.step = 4; this.$nextTick(this.predict); },
         addFood() {
           if (!this.selectedFoodId) return;
           const f = this.foods.find(x => x.food_id === this.selectedFoodId);
@@ -119,61 +173,33 @@
           this.selectedFoodPortion = 1;
         },
         addExercise() {
-          if (!this.selectedExId) return;
+          if (!this.selectedExId || !this.selectedExPeriod) return;
           const e = this.exercises.find(x => x.exercise_id === this.selectedExId);
           this.exerciseInputs.push({
-            exerciseId: e.exercise_id, name: e.exercise_name, durationMin: this.selectedExDuration
+            exerciseId: e.exercise_id, name: e.exercise_name,
+            durationMin: this.selectedExDuration, period: this.selectedExPeriod
           });
           this.selectedExDuration = 30;
         },
         removeItem(arr, i) { arr.splice(i, 1); },
-        changePortion(arr, i, delta, key = 'portion') {
-          const newVal = arr[i][key] + delta;
-          if (newVal > 0) arr[i][key] = newVal;
-        },
-         goToStep3() {
-          this.step = 3;
-          // 下一個 Vue 更新 DOM 後再跑 predict
-          this.$nextTick(() => {
-            this.predict();
-          });
-        },
+        changePortion(arr, i, delta, key = 'portion') { const v = arr[i][key] + delta; if (v > 0) arr[i][key] = v; },
         async predict() {
           const req = {
             userId: 1,
-            time: new Date().toISOString(),
-            foodInputs: this.foodInputs.map(x => ({ foodId: x.foodId, portion: x.portion })),
-            exerciseInputs: this.exerciseInputs.map(x => ({ exerciseId: x.exerciseId, durationMin: x.durationMin }))
+            time: new Date(this.predictTime + ':00+08:00').toISOString(),
+            currentBg: this.currentBg,
+            foodInputs: this.foodInputs.map(x => ({ FoodId: x.foodId, Portion: x.portion })),
+            exerciseInputs: this.exerciseInputs.map(x => ({ ExerciseId: x.exerciseId, DurationMin: x.durationMin, Period: x.period }))
           };
           const res = await axios.post('/api/v1/prediction/custom/multi', req);
           this.predictedBgs = res.data.predictedBgs;
-          this.drawChart();
-        },
-        drawChart() {
-          const labels = this.predictedBgs.map((_, i) => `${15*(i+1)} 分`);
+          const labels = this.predictedBgs.map((_, i) => `${15 * (i+1)} 分`);
           if (this.chart) this.chart.destroy();
-          const ctx = document.getElementById('trendChart').getContext('2d');
-          this.chart = new Chart(ctx, {
+          this.chart = new Chart(document.getElementById('trendChart'), {
             type: 'line',
-            data: { labels, datasets: [{ label:'預測血糖', data:this.predictedBgs, tension:0.3, borderWidth:2 }]},
-            options: {
-              plugins: {
-                annotation: {
-                  annotations: {
-                    peak: {
-                      type:'point',
-                      xValue: labels[this.predictedBgs.indexOf(Math.max(...this.predictedBgs))],
-                      yValue: Math.max(...this.predictedBgs),
-                      backgroundColor:'red', radius:5,
-                      label:{ content:'峰值', enabled:true, position:'top' }
-                    }
-                  }
-                }
-              }
-            }
+            data: { labels, datasets: [{ label: '預測血糖', data: this.predictedBgs, tension: 0.3, borderWidth: 2 }] }
           });
         }
       }
     }).mount('#app');
 </script>
-
