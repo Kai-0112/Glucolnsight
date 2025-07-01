@@ -48,50 +48,98 @@
     </div>
 
 
-    <!-- Step 2：輸入飲食資料 -->
-    <div v-if="step===2">
-        <h3>步驟 2：輸入飲食資料</h3>
-        <div class="row mb-3">
-            <div class="col-md-6">
-                <label class="form-label">食物類型</label>
-                <select class="form-select" v-model="selectedCategoryId">
-                    <option value="">── 全部類型 ──</option>
-                    <option v-for="c in categories" :key="c.food_category_id" :value="c.food_category_id">
-                        {{ c.food_type }}
-                    </option>
-                </select>
+    <!-- B. 食物輸入頁 -->
+    <div v-if="step===2" class="container-fluid">
+        <!-- 食物輸入標題-->
+        <header class="content-header mb-4">
+            <h2 class="section-title">食物輸入</h2>
+        </header>
+
+        <!-- 進度條-->
+        <section class="progress-stepper d-flex justify-content-center align-items-center mb-4">
+            <!-- 食物輸入進度條 -->
+            <article class="step-item d-flex flex-column align-items-center me-3">
+                <div>
+                    <img src="~/images/Done_Progress_bar.svg" class="check-icon mb-2 text-primary" />
+                </div>
+                <p class="step-text-completed">輸入飲食資料</p>
+            </article>
+
+            <!-- 進度線條1 -->
+            <div class="progress-bar-container flex-fill mx-2">
+                <div class="progress-bar-completed"></div>
             </div>
-            <div class="col-md-6">
-                <label class="form-label">選擇食物</label>
-                <select class="form-select" v-model="selectedFoodId">
-                    <option disabled value="">── 選擇食物 ──</option>
-                    <option v-for="f in filteredFoods" :key="f.food_id" :value="f.food_id">
-                        {{ f.food_name }} (GI {{ f.glycemic_index }})
-                    </option>
-                </select>
+
+            <!-- 運動輸入進度條 -->
+            <article class="step-item d-flex flex-column align-items-center mx-3">
+                <div>
+                    <img src="~/images/Noyet_Progress_bar.svg" class="clock-icon mb-2 text-muted" />
+                </div>
+                <p class="step-text-pending text-muted">輸入運動資料</p>
+            </article>
+
+            <!-- 進度線條2 -->
+            <div class="progress-bar-container flex-fill mx-2">
+                <div class="progress-bar-pending"></div>
             </div>
+
+            <!-- 預測結果進度條 -->
+            <article class="step-item d-flex flex-column align-items-center ms-3">
+                <div>
+                    <img src="~/images/Noyet_Progress_bar.svg" class="clock-icon mb-2 text-muted" />
+                </div>
+                <p class="step-text-pending text-muted">查看預測結果</p>
+            </article>
+        </section>
+
+        <!-- 新增食物內容區 -->
+        <div class="food-manager mb-4 rounded">
+            <section class="food-manager-container px-4 py-3">
+                <div class="row gx-3 mb-3 align-items-end">
+
+                    <div class="col-md-4">
+                        <select class="form-select food-type-dropdown w-100 " v-model="selectedCategoryId">
+                            <option value="">── Step 1. 選擇食物類型 ──</option>
+                            <option v-for="c in categories" :key="c.food_category_id" :value="c.food_category_id">
+                                {{ c.food_type }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <select class="form-select food-type-dropdown w-100 " v-model="selectedFoodId">
+                            <option disabled value="">── Step 2. 選擇該類型食物 ──</option>
+                            <option v-for="f in filteredFoods" :key="f.food_id" :value="f.food_id">
+                                {{ f.food_name }} (GI {{ f.glycemic_index }})
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end justify-content-end">
+                        <button class="add-food-button btn btn-primary d-flex align-items-center gap-2" v-on:click="addFood">
+                            <img src="~/images/Plus.svg" alt="plus" class="plus-icon me-2" />
+                            <span class="button-text">新增食物</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 分隔線 -->
+                <div class="divider my-3"></div>
+
+                <ul class="list-group mb-3">
+                    <li class="list-group-item" v-for="(fi, i) in foodInputs" :key="i">
+                        {{ fi.name }}：{{ fi.portion }} 份
+                        <span class="float-end">
+                            <button class="btn btn-sm btn-outline-secondary me-1" v-on:click="changePortion(foodInputs, i, -1, 'portion')">-</button>
+                            <button class="btn btn-sm btn-outline-secondary me-1" v-on:click="changePortion(foodInputs, i, +1, 'portion')">+</button>
+                            <button class="btn btn-sm btn-danger" v-on:click="removeItem(foodInputs, i)">刪除</button>
+                        </span>
+                    </li>
+                </ul>
+            </section>
         </div>
-        <div class="row mb-3">
-            <div class="col-md-4">
-                <label class="form-label">份量</label>
-                <input type="number" class="form-control" v-model.number="selectedFoodPortion" min="1" />
-            </div>
-            <div class="col-md-8 d-flex align-items-end">
-                <button class="btn btn-primary w-100" v-on:click="addFood">新增食物</button>
-            </div>
-        </div>
-        <ul class="list-group mb-3">
-            <li class="list-group-item" v-for="(fi, i) in foodInputs" :key="i">
-                {{ fi.name }}：{{ fi.portion }} 份
-                <span class="float-end">
-                    <button class="btn btn-sm btn-outline-secondary me-1" v-on:click="changePortion(foodInputs, i, -1, 'portion')">-</button>
-                    <button class="btn btn-sm btn-outline-secondary me-1" v-on:click="changePortion(foodInputs, i, +1, 'portion')">+</button>
-                    <button class="btn btn-sm btn-danger" v-on:click="removeItem(foodInputs, i)">刪除</button>
-                </span>
-            </li>
-        </ul>
-        <button class="btn btn-secondary me-2" v-on:click="step=1">上一步：模擬起點</button>
-        <button class="btn btn-success" v-on:click="goToStep3" :disabled="!foodInputs.length">下一步：輸入運動</button>
+        
+        <!-- CTA 按鈕，下一步 -->
+        <button class="start-prediction-button btn btn-primary btn-lg" v-on:click="goToStep3" :disabled="!foodInputs.length">下一步</button>
     </div>
 
     <!-- Step 3：輸入運動資料，選擇時段：餐前／餐後 -->
