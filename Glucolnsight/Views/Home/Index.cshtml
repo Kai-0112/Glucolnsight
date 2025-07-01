@@ -2,26 +2,53 @@
     Layout = "_Layout";
 }
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="~/css/GlucoInsight.css" />
 
-<div id="app" class="container my-5">
-    <!-- Step 1：設定模擬起點 -->
+<!-- 主要內容 -->
+<section id="app" class="main-content col-10 d-flex flex-column">
+    <!-- A.血糖預測功能頁 -->
     <div v-if="step===1">
-        <h3>步驟 1：模擬起點</h3>
-        <div class="row mb-3">
-            <div class="col-md-6">
-                <label for="predictTime" class="form-label">預測時刻</label>
-                <input id="predictTime" type="datetime-local" class="form-control" v-model="predictTime" />
-                <small class="form-text text-muted">預設為現在，或自訂未來/歷史時點</small>
+        <header class="content-header">
+            <h2 class="section-title">血糖預測功能</h2>
+        </header>
+        <!-- 免責提示區塊 -->
+        <section v-if="!warningIsHidden" id="infoBanner" class="info-banner alert">
+            <img src="~/images/Big_Info_Icon.svg" alt="Information icon" class="info-icon flex-shrink-0 me-4" />
+            <p class="info-message flex-grow-1">
+                本預測結果僅供參考，基於您過去記錄資料與模型推估所得，實際血糖變化可能因身體狀況、藥物影響等因素而異，如需行為建議，請諮詢專業醫療人員。
+            </p>
+            <button type="button" aria-label="Close"
+                    class="btn-close me-3 mt-2 position-absolute top-0 end-0" @@click ="toggleHidden"></button>
+        </section>
+        <!-- end -->
+
+        <main class="prediction-container container py-2">
+            <!-- 預測時刻 -->
+            <section class="prediction-time-section mb-2">
+                <h4 for="predictTime" class="prediction-time-label mb-3">預測時刻</h4>
+                <input id="predictTime" type="datetime-local" class="time-display-container p-3 form-control " v-model="predictTime" />
+            </section>
+
+            <small class="time-description mb-4">預設為現在，或自訂未來/歷史時點</small>
+
+            <!-- 當下血糖 -->
+            <div class="blood-sugar-label-container d-flex align-items-center mb-2 mt-5">
+                <label class="blood-sugar-label mb-0 mb-2" for="currentBg blood-sugar-input">當下血糖 (mg/dL)</label>               
             </div>
-            <div class="col-md-6">
-                <label for="currentBg" class="form-label">當下血糖 (mg/dL)</label>
-                <input id="currentBg" type="number" class="form-control" v-model.number="currentBg" placeholder="請輸入當前血糖值" />
-            </div>
-        </div>
-        <button class="btn btn-success" v-on:click="goToStep2" :disabled="!currentBg">下一步：輸入飲食</button>
+            <input id="currentBg" type="number" class="blood-sugar-input form-control mb-5 p-3" v-model.number="currentBg" placeholder="請輸入當前血糖值" />
+            
+        </main>
+
+        <!-- CTA 按鈕，進行下一步 -->
+        <button type="button" class="start-prediction-button btn btn-primary btn-lg align-self-start "
+                v-on:click="goToStep2" :disabled="!currentBg">
+            開始進行預測
+        </button>
+        <!-- end -->
     </div>
 
-    <!-- Step 2：輸入飲食資料，支援依類型篩選 -->
+
+    <!-- Step 2：輸入飲食資料 -->
     <div v-if="step===2">
         <h3>步驟 2：輸入飲食資料</h3>
         <div class="row mb-3">
@@ -123,6 +150,8 @@
         </div>
     </div>
 </div>
+</section>
+<!-- end -->
 
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
@@ -132,6 +161,7 @@
     createApp({
       data() {
         return {
+          warningIsHidden: false,
           step: 1,
           predictTime: new Date().toISOString().slice(0,16),
           currentBg: null,
@@ -161,6 +191,7 @@
         this.exercises = exRes.data;
       },
       methods: {
+        toggleHidden() {this.warningIsHidden = true;},
         goToStep2() { this.step = 2; },
         goToStep3() { this.step = 3; },
         goToStep4() { this.step = 4; this.$nextTick(this.predict); },

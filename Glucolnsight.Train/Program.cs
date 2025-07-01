@@ -58,10 +58,10 @@ var exs = ctx.ExerciseLog
     .OrderBy(e => e.exercise_event_time)
     .ToList();
 
-// 4. 產生訓練資料 (List<Input> data)
-//  - P = 4  → 取過去 4 筆 BG 作為「短期趨勢」
-//  - 每次迴圈 i 代表一個時間點 (logs[i])
-//  - 輸出 8 個未來點 (15min × 8 = 2 小時) 當 Label1–Label8
+// 4. 產生訓練資料
+//  - 每小時以 15min 為單位取 4 個時間點，P = 4  → 取過去 4 筆血糖資料
+//  - 每次迴圈 i 代表一個時間點
+//  - 輸出 8 個未來點 (15min × 8 = 2 小時) 當 Label1-Label8
 
 const int P = 4;
 var data = new List<Input>();
@@ -79,20 +79,20 @@ for (int i = P; i + 8 < logs.Count; i++)
     // 4.2 最近一餐特徵
     var lastMeal = meals.LastOrDefault(m => m.user_id == 1 && m.meal_event_time <= time);
 
-    // 計算碳水總量 (carbSum) 與平均 GI (avgGi)
+    // 計算飲食加權
     float carbSum = 0, giSum = 0, ptSum = 0;
     if (lastMeal != null)
     {
         foreach (var mi in lastMeal.Items)
         {
             carbSum += mi.Portion * mi.CarbPerServing;  // 總碳水化合物
-            giSum += mi.Gi * mi.Portion;                // GI 加權總和
+            giSum += mi.Gi * mi.Portion;                // 平均升糖指數
             ptSum += mi.Portion;                        // 份數總和
         }
     }
-    float avgGi = ptSum > 0 ? giSum / ptSum : 0;        // 份數加權平均 GI
+    float avgGi = ptSum > 0 ? giSum / ptSum : 0;
 
-    // 4.3 最近一次運動特徵
+    // 計算運動加權
     var lastEx = exs.LastOrDefault(e => e.user_id == 1 && e.exercise_event_time <= time);
     float mets = (float)(lastEx?.mets ?? 0m);           // 強度 (METs)
     float dur = (float)(lastEx?.duration_min ?? 0m);    // 持續時間 (min)
@@ -116,12 +116,12 @@ for (int i = P; i + 8 < logs.Count; i++)
 
 
 
-    // 4.5 取未來 8 點作為 Label1–Label8
+    // 取未來2小時內共 8 個時間點，以 Label1 – Label8 作為代號。
     var lbls = new float[8];
     for (int k = 1; k <= 8; k++)
         lbls[k - 1] = (float)(logs[i + k].glucose_mgdl ?? 0);
 
-    // 4.6 組成 Input 物件並加入 data 列表
+    // 組成 Input 物件並加入 data 列表
     data.Add(new Input
     {
         // 特徵

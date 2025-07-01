@@ -1,0 +1,794 @@
+/* 預設樣式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Lato', -apple-system, Roboto, Helvetica, sans-serif;
+    background-color: rgba(247, 248, 252, 1);
+    color: rgba(68, 73, 78, 1);
+}
+
+/* 主要排版 */
+.homepage {
+    padding: 2rem 2rem 4rem 2rem;
+    overflow: hidden;
+}
+
+.layout-container {
+    display: flex;
+}
+
+/* 導覽列 */
+.sidebar {
+    width: 19%;
+}
+
+.sidebar-content {
+    border-radius: 1rem;
+    background-color: rgba(255, 255, 255, 1);
+    border: 0.125rem solid rgba(231, 231, 233, 1);
+    padding: 1.25rem 0.125rem 23.75rem 0.0625rem;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    font-family: 'Lato', -apple-system, Roboto, Helvetica, sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.navigation {
+    display: flex;
+    flex-direction: column;
+}
+
+.nav-item {
+    display: flex;
+    padding: 0.875rem 1.5rem;
+    align-items: center;
+    gap: 0.75rem;
+    line-height: 1;
+    text-decoration: none;
+    color: #44494e;
+    margin-bottom: 0.75rem;
+    cursor: pointer;
+}
+
+.nav-item:hover,
+.nav-item:focus {
+    background-color: rgba(216, 244, 248, 1);
+    padding: 0.6875rem 0.75rem;
+    color: #33c3d9;
+}
+
+.nav-icon {
+    aspect-ratio: 1;
+    object-fit: contain;
+    object-position: center;
+    width: 1rem;
+    flex-shrink: 0;
+}
+
+.nav-label {
+    flex-grow: 1;
+}
+
+a.nav-item:hover,
+a.nav-item:focus,
+a.nav-item:active,
+a.nav-item:visited:hover {
+    color: #44494e;
+    text-decoration: none;
+}
+
+/* End */
+
+
+/* A.首頁主要內容 */
+.main-content {
+    width: 81%;
+    display: flex;
+    flex-direction: column;
+    margin-top: 1.1875rem;
+    font-family: 'Poppins', -apple-system, Roboto, Helvetica, sans-serif;
+    font-size: 1.25rem;
+    color: rgba(68, 73, 78, 1);
+    font-weight: 700;
+}
+
+.section-title {
+    color: rgba(51, 195, 217, 1);
+    font-size: 2rem;
+    letter-spacing: 0.06rem;
+    margin-bottom: 1.5rem;
+}
+
+/* 免責提示區塊 */
+.info-banner {
+    display: flex;
+    align-items: center;
+    border-radius: 0.75rem;
+    padding: 2.3125rem 4rem;
+    padding-left: 1.5rem;
+    position: relative;
+    max-width: 100%;
+    margin: 0 auto;
+    margin-bottom: 2rem;
+    background-color: #d8f4f8;
+}
+
+.info-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    ;
+}
+
+.info-message {
+    color: #44494e;
+    font-family: Lato, -apple-system, Roboto, Helvetica, sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.00625rem;
+    line-height: 1.5rem;
+    flex: 1;
+    margin: 0;
+}
+
+.close-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    cursor: pointer;
+}
+
+.close-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+/* End */
+
+
+/* 預測時刻和當下血糖 */
+.prediction-container {
+    border-radius: 0;
+    letter-spacing: 0.1px;
+    font: 24px Lato, -apple-system, Roboto, Helvetica, sans-serif;
+}
+
+.prediction-time-label {
+    color: rgba(68, 73, 78, 1);
+    font-weight: 700;
+    line-height: 1;
+}
+
+.time-display-container {
+    border-radius: 16px;
+    background-color: #fff;
+    gap: 20px;
+    color: rgba(183, 186, 191, 1);
+    font-weight: 500;
+    line-height: 1;
+    border: 2px solid rgba(51, 195, 217, 1);
+    font-size: 24px;
+}
+
+
+.time-description {
+    color: rgb(171, 185, 198);
+    font-weight: 500;
+    font-size: 20px;
+}
+
+.blood-sugar-label-container {
+    color: rgba(68, 73, 78, 1);
+    font-weight: 700;
+    white-space: nowrap;
+    line-height: 1;
+}
+
+.blood-sugar-input {
+    border-radius: 16px;
+    background-color: #fff;
+    color: rgba(183, 186, 191, 1);
+    font-weight: 500;
+    line-height: 1;
+    border: 2px solid rgba(51, 195, 217, 1);
+    font-family: Lato, -apple-system, Roboto, Helvetica, sans-serif;
+    font-size: 24px;
+    letter-spacing: 0.1px;
+    box-sizing: border-box;
+}
+
+.blood-sugar-input::placeholder {
+    color: rgba(183, 186, 191, 1);
+}
+
+.blood-sugar-input:focus {
+    outline: none;
+    border-color: rgba(51, 195, 217, 1);
+    color: rgba(68, 73, 78, 1);
+}
+
+/* End */
+
+
+
+/* CTA 按鈕，進行下一步 */
+.start-prediction-button {
+    border-radius: 0.75rem;
+    background-color: rgba(51, 195, 217, 1);
+    padding: 1.1875rem 2.375rem;
+    font-size: 1.5rem;
+    color: rgba(255, 255, 255, 1);
+    letter-spacing: 0.015rem;
+    line-height: 1;
+    border: none;
+    cursor: pointer;
+    font-family: 'Poppins', -apple-system, Roboto, Helvetica, sans-serif;
+    font-weight: 700;
+    width: 100%;
+}
+
+/* 預設主按鈕顏色 */
+.start-prediction-button.btn-primary {
+    background-color: #33c3d9;
+    border-color: #33c3d9;
+}
+
+/* 按下 / 獲得焦點時套用更深的顏色 */
+.start-prediction-button.btn-primary:focus,
+.start-prediction-button.btn-primary:active,
+.start-prediction-button.btn-primary.active {
+    background-color: #2ba7b5;
+    border-color: #2ba7b5;
+    box-shadow: none;
+}
+
+/* 滑鼠懸停時也套用深色 */
+.start-prediction-button.btn-primary:hover {
+    background-color: #2ba7b5;
+    border-color: #2ba7b5;
+}
+
+/* RWD */
+@media (max-width: 61.9375rem) {
+    .homepage {
+        padding: 4rem 1.25rem;
+    }
+
+    .layout-container {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+    }
+
+    .sidebar {
+        width: 100%;
+    }
+
+    .sidebar-content {
+        margin-top: 2.5rem;
+        padding-bottom: 6.25rem;
+    }
+
+    .nav-item-active {
+        margin-right: 0.625rem;
+        margin-left: 0.625rem;
+    }
+
+    .nav-item {
+        padding-left: 1.25rem;
+        padding-right: 1.25rem;
+    }
+
+    .main-content {
+        width: 100%;
+        max-width: 100%;
+        margin-top: 2.5rem;
+    }
+
+    .disclaimer-banner {
+        padding-left: 1.25rem;
+    }
+
+    .disclaimer-text {
+        max-width: 100%;
+    }
+
+    .prediction-results {
+        max-width: 100%;
+        margin-right: 0.4375rem;
+        padding-left: 1.25rem;
+        padding-right: 1.25rem;
+    }
+
+    .results-header {
+        max-width: 100%;
+    }
+
+    .results-description {
+        max-width: 100%;
+    }
+
+    .results-chart {
+        max-width: 100%;
+    }
+
+    .start-prediction-button {
+        max-width: 100%;
+        margin-right: 0.4375rem;
+        padding-left: 1.25rem;
+        padding-right: 1.25rem;
+    }
+}
+
+/* End */
+
+/*--------------------------------------------------------------------------------------------*/
+
+/* B.食物份數輸入和C.運動時數輸入 */
+
+/* Progress Stepper Container */
+.progress-stepper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 45.0625rem;
+    /* 721px */
+    margin: 0 auto;
+    position: relative;
+}
+
+/* Step Item */
+.step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 40%;
+    position: relative;
+}
+
+/* Step Text - Completed */
+.step-text-completed {
+    color: #33c3d9;
+    font-size: 1.25rem;
+    /* 20px */
+    font-weight: 600;
+    letter-spacing: 0.0625rem;
+    /* 1px */
+    margin-top: 0.75rem;
+    /* 12px */
+}
+
+/* Step Text - Pending */
+.step-text-pending {
+    color: #b7babf;
+    font-size: 1.25rem;
+    /* 20px */
+    font-weight: 400;
+    margin-top: 0.75rem;
+    /* 12px */
+}
+
+/* Progress Bar Container */
+.progress-bar-container {
+    width: 17.25rem;
+    /* 276px */
+    height: 0.25rem;
+    /* 4px */
+    margin: 0 0.625rem;
+    /* 0 10px */
+    background-color: #d9d9d9;
+}
+
+/* Progress Bar - Completed */
+.progress-bar-completed {
+    height: 100%;
+    width: 100%;
+    background-color: #33c3d9;
+}
+
+/* Progress Bar - Pending */
+.progress-bar-pending {
+    height: 100%;
+    width: 0;
+    background-color: #33c3d9;
+}
+
+/* Responsive styles */
+@media (max-width: 991px) {
+    .progress-stepper {
+        width: 90%;
+        flex-wrap: wrap;
+        justify-content: space-around;
+    }
+
+    .progress-bar-container {
+        width: 6.25rem;
+        /* 100px */
+    }
+}
+
+@media (max-width: 640px) {
+    .progress-stepper {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .step-item {
+        margin: 0.625rem 0;
+        /* 10px 0 */
+    }
+
+    .progress-bar-container {
+        transform: rotate(90deg);
+        margin: 1.25rem 0;
+        /* 20px 0 */
+        width: 2.5rem;
+        /* 40px */
+    }
+}
+
+/* Food Manager Component Styles */
+.food-manager {
+    max-width: none;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    height: 28.75rem;
+    /* 460px */
+    border-radius: 1rem;
+    /* 16px */
+    border: 0.125rem solid #33c3d9;
+    /* 2px */
+    position: relative;
+    background-color: #fff;
+}
+
+.food-manager-container {
+    padding: 2rem 3rem;
+    /* 32px 48px */
+}
+
+.search-controls {
+    display: flex;
+    gap: 0.75rem;
+    /* 12px */
+    align-items: center;
+}
+
+.search-wrapper {
+    position: relative;
+    width: 23.5rem;
+    /* 376px */
+    height: 2.5rem;
+    /* 40px */
+}
+
+.search-icon-container {
+    position: absolute;
+    left: 0.75rem;
+    /* 12px */
+    top: 0.75rem;
+    /* 12px */
+    width: 1rem;
+    /* 16px */
+    height: 1rem;
+    /* 16px */
+}
+
+.search-input {
+    width: 100%;
+    height: 100%;
+    border-radius: 0.5rem;
+    /* 8px */
+    border: none;
+    padding-left: 2.75rem;
+    /* 44px */
+    font-family: Lato, sans-serif;
+    font-size: 0.9375rem;
+    /* 15px */
+    color: #44494e;
+    background-color: #ebeef3;
+}
+
+.food-type-dropdown {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    /* 12px */
+    border: 0.125rem solid #b7babf;
+    /* 2px */
+    border-radius: 0.5rem;
+    /* 8px */
+    font-family: Lato, sans-serif;
+    font-size: 0.9375rem;
+    /* 15px */
+    color: #44494e;
+    cursor: pointer;
+    width: 8rem;
+    /* 128px */
+}
+
+.time-period-dropdown {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    /* 12px */
+    border: 0.125rem solid #b7babf;
+    border-radius: 0.5rem;
+    font-family: Lato, sans-serif;
+    font-size: 0.9375rem;
+    /* 15px */
+    color: #44494e;
+    cursor: pointer;
+    width: 5.1875rem;
+    /* 83px */
+}
+
+.dropdown-arrow {
+    width: 0;
+    height: 0;
+    border-left: 0.3125rem solid transparent;
+    /* 5px */
+    border-right: 0.3125rem solid transparent;
+    border-top: 0.3125rem solid #000;
+    margin-left: 0.5rem;
+    /* 8px */
+}
+
+.add-food-button {
+    display: flex;
+    align-items: center;
+    gap: 0.9375rem;
+    /* 15px */
+    padding: 0.625rem 1.25rem;
+    /* 10px 20px */
+    border-radius: 0.5rem;
+    /* 8px */
+    border: none;
+    cursor: pointer;
+    background-color: #33c3d9;
+}
+
+.plus-icon {
+    width: 2rem;
+    /* 32px */
+    height: 2rem;
+    /* 32px */
+}
+
+.button-text {
+    color: #fff;
+    font-family: Lato, sans-serif;
+    font-size: 1.25rem;
+    /* 20px */
+    font-weight: 700;
+}
+
+.divider {
+    width: 100%;
+    height: 0.0625rem;
+    /* 1px */
+    margin: 1.75rem 0;
+    /* 28px 0 */
+    background-color: #b7babf;
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 5rem;
+    /* 80px */
+}
+
+.empty-icon {
+    width: 13.5rem;
+    /* 216px */
+    height: 5.5rem;
+    /* 88px */
+}
+
+.empty-state-text {
+    color: #33c3d9;
+    font-family: Lato, sans-serif;
+    font-size: 1.25rem;
+    /* 20px */
+    font-weight: 700;
+    margin-top: 2.6875rem;
+    /* 43px */
+}
+
+/* Responsive Styles */
+@media (max-width: 991px) {
+    .food-manager {
+        max-width: 991px;
+        width: 90%;
+        margin: 0 auto;
+    }
+
+    .search-controls {
+        flex-wrap: wrap;
+        gap: 0.625rem;
+        /* 10px */
+    }
+
+    .search-wrapper {
+        width: 100%;
+    }
+
+    .food-type-dropdown,
+    .time-period-dropdown,
+    .add-food-button {
+        flex: 1;
+    }
+}
+
+@media (max-width: 640px) {
+    .food-manager {
+        max-width: 640px;
+    }
+
+    .food-manager-container {
+        padding: 1rem;
+        /* 16px */
+    }
+
+    .divider {
+        width: 90%;
+        margin: 1.25rem auto;
+        /* 20px auto */
+    }
+
+    .empty-state {
+        margin-top: 2.5rem;
+        /* 40px */
+    }
+
+    .empty-state-text {
+        font-size: 1rem;
+        /* 16px */
+    }
+}
+
+/* End */
+
+/*--------------------------------------------------------------------------------------------*/
+
+/* D.預測結果頁 */
+/* 預測血糖過高過低提醒 */
+.warning-alert-container {
+    width: 100%;
+    height: 80px;
+    border-radius: 12px;
+    border: 1px solid #d48a15;
+    background-color: #fffbe6;
+    /* Bootstrap flex */
+    display: flex;
+    align-items: center;
+    padding: 0 32px;
+    margin: 0 auto;
+}
+
+.warning-icon-wrapper {
+    display: flex;
+    align-items: center;
+    margin-right: 16px;
+}
+
+.warning-icon {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+}
+
+.warning-message {
+    color: #44494e;
+    letter-spacing: 0.1px;
+    flex: 1;
+    font: 700 20px 'Lato', sans-serif;
+    line-height: 1.2;
+    margin-bottom: 0;
+}
+
+/* Tablet styles */
+@media (max-width: 991px) {
+    .warning-alert-container {
+        padding: 0 24px;
+        height: auto;
+        min-height: 80px;
+    }
+
+    .warning-message {
+        font-size: 20px;
+        line-height: 1.2;
+    }
+}
+
+/* Mobile styles */
+@media (max-width: 640px) {
+    .warning-alert-container {
+        flex-direction: column;
+        text-align: center;
+        height: auto;
+        min-height: 100px;
+        padding: 16px;
+    }
+
+    .warning-icon-wrapper {
+        margin-right: 0;
+        margin-bottom: 8px;
+    }
+
+    .warning-message {
+        font-size: 18px;
+        line-height: 1.3;
+        margin-top: 8px;
+    }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .warning-alert-container {
+        border-width: 2px;
+    }
+}
+
+/* Focus styles for accessibility */
+.warning-alert-container:focus-within {
+    outline: 2px solid #d48a15;
+    outline-offset: 2px;
+}
+
+/* 血糖預測圖 */
+.image-wrapper {
+    border-radius: 0;
+}
+
+.image-container {
+    border-radius: 24px;
+    background-color: rgba(255, 255, 255, 1);
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    padding: 8px;
+    border: 2px solid rgba(51, 195, 217, 1);
+}
+
+.featured-image {
+    aspect-ratio: 3.51;
+    object-fit: contain;
+    object-position: center;
+    width: 100%;
+}
+
+@media (max-width: 991px) {
+    .image-container {
+        max-width: 100%;
+    }
+
+    .featured-image {
+        max-width: 100%;
+    }
+}
+
+/* End */
