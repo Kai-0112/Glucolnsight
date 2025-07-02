@@ -19,5 +19,17 @@ namespace ApplicationCore.DTOs
 
         // 當下運動時間
         public DateTimeOffset EventTime { get; set; }
+
+        public string? ExerciseType { get; set; }
+        
+        public string? Name { get; set; }
+
+        public string? Period { get; set; }
+
+        public class PredictionWithExerciseDto : PredictionResultDto
+        {
+            // 多了這個屬性，用來回傳前面那個 DTO 列表
+            public List<ExerciseInput>? ExerciseInputs { get; set; }
+        }
     }
 }

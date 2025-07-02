@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="wwwroot\css\fq4jtqgk.ltn~" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.15">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -30,6 +34,7 @@
 
 	<ItemGroup>
 	  <Folder Include="wwwroot\images\food-icons\" />
+	  <Folder Include="wwwroot\images\exercise-icons\" />
 	</ItemGroup>
 	
 	

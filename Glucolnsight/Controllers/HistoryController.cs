@@ -62,7 +62,24 @@ namespace Web.Controllers
             var list = await _ctx.ExerciseItem
                 .Select(e => new {
                     e.exercise_id,
-                    e.exercise_name
+                    e.exercise_name,
+                    e.exercise_category_id
+                })
+                .ToListAsync();
+            return Ok(list);
+        }
+
+        /// <summary>
+        /// 取得所有運動分類（exercise categories）
+        /// GET /api/v1/history/exercisecategories
+        /// </summary>
+        [HttpGet("exercisecategories")]
+        public async Task<IActionResult> ExerciseCategories()
+        {
+            var list = await _ctx.ExerciseCategory
+                .Select(c => new {
+                    c.exercise_category_id,
+                    c.exercise_type
                 })
                 .ToListAsync();
             return Ok(list);

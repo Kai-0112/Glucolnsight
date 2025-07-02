@@ -4,243 +4,294 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
 <link rel="stylesheet" href="~/css/GlucoInsight.css" />
 
-<!-- 主要內容 -->
-<section id="app" class="main-content col-10 d-flex flex-column">
-    <!-- A.血糖預測功能頁 -->
-    <div v-if="step===1">
-        <header class="content-header">
-            <h2 class="section-title">血糖預測功能</h2>
-        </header>
-        <!-- 免責提示區塊 -->
-        <section v-if="!warningIsHidden" id="infoBanner" class="info-banner alert">
-            <img src="~/images/Big_Info_Icon.svg" alt="Information icon" class="info-icon flex-shrink-0 me-4" />
-            <p class="info-message flex-grow-1">
-                本預測結果僅供參考，基於您過去記錄資料與模型推估所得，實際血糖變化可能因身體狀況、藥物影響等因素而異，如需行為建議，請諮詢專業醫療人員。
-            </p>
-            <button type="button" aria-label="Close"
-                    class="btn-close me-3 mt-2 position-absolute top-0 end-0" @@click ="toggleHidden"></button>
-        </section>
+<main id="app" class="homepage container-fluid">
+    <div class="layout-container row gx-3">
+
+        <!-- 導覽列 -->
+        <aside class="sidebar col-2">
+            <div class="sidebar-content d-flex flex-column">
+                <div class="logo mb-3">
+                    <img src="~/images/Logo.svg" class="sidebar-logo" alt="Logo" />
+                </div>
+                <nav class="navigation nav flex-column">
+                    <a href="#" class="nav-item nav-link d-flex align-items-center">
+                        <img src="~/images/Home.svg" class="nav-icon" alt="Home icon" />
+                        <span class="nav-label">首頁</span>
+                    </a>
+                    <a href="#" class="nav-item nav-link d-flex align-items-center">
+                        <img src="~/images/History.svg" class="nav-icon" alt="History icon" />
+                        <span class="nav-label">歷史紀錄</span>
+                    </a>
+                    <a href="#" class="nav-item nav-link d-flex align-items-center">
+                        <img src="~/images/Setting.svg" class="nav-icon" alt="Account settings icon" />
+                        <span class="nav-label">帳號設定</span>
+                    </a>
+                    <a href="#" class="nav-item nav-link d-flex align-items-center">
+                        <img src="~/images/Logout.svg" class="nav-icon" alt="Logout icon" />
+                        <span class="nav-label">登出</span>
+                    </a>
+                </nav>
+            </div>
+        </aside>
         <!-- end -->
 
-        <main class="prediction-container container py-2">
-            <!-- 預測時刻 -->
-            <section class="prediction-time-section mb-2">
-                <h4 for="predictTime" class="prediction-time-label mb-3">預測時刻</h4>
-                <input id="predictTime" type="datetime-local" class="time-display-container p-3 form-control " v-model="predictTime" />
-            </section>
+        <!-- 主要內容 -->
+        <section id="app" class="main-content col-10 d-flex flex-column">
+            <!-- A.血糖預測功能頁 -->
+            <div v-if="step===1">
+                <header class="content-header">
+                    <h2 class="section-title">血糖預測功能</h2>
+                </header>
+                <!-- 免責提示區塊 -->
+                <section v-if="!warningIsHidden" id="infoBanner" class="info-banner alert">
+                    <img src="~/images/Big_Info_Icon.svg" alt="Information icon" class="info-icon flex-shrink-0 me-4" />
+                    <p class="info-message flex-grow-1">
+                        本預測結果僅供參考，基於您過去記錄資料與模型推估所得，實際血糖變化可能因身體狀況、藥物影響等因素而異，如需行為建議，請諮詢專業醫療人員。
+                    </p>
+                    <button type="button" aria-label="Close"
+                            class="btn-close me-3 mt-2 position-absolute top-0 end-0" @@click ="toggleHidden"></button>
+                </section>
+                <!-- end -->
 
-            <small class="time-description mb-4">預設為現在，或自訂未來/歷史時點</small>
+                <main class="prediction-container container py-2">
+                    <!-- 預測時刻 -->
+                    <section class="prediction-time-section mb-2">
+                        <h4 for="predictTime" class="prediction-time-label mb-3">預測時刻</h4>
+                        <input id="predictTime" type="datetime-local" class="time-display-container p-3 form-control " v-model="predictTime" />
+                    </section>
 
-            <!-- 當下血糖 -->
-            <div class="blood-sugar-label-container d-flex align-items-center mb-2 mt-5">
-                <label class="blood-sugar-label mb-0 mb-2" for="currentBg blood-sugar-input">當下血糖 (mg/dL)</label>               
-            </div>
-            <input id="currentBg" type="number" class="blood-sugar-input form-control mb-5 p-3" v-model.number="currentBg" placeholder="請輸入當前血糖值" />
+                    <small class="time-description mb-4">預設為現在，或自訂未來/歷史時點</small>
+
+                    <!-- 當下血糖 -->
+                    <div class="blood-sugar-label-container d-flex align-items-center mb-2 mt-5">
+                        <label class="blood-sugar-label mb-0 mb-2" for="currentBg blood-sugar-input">當下血糖 (mg/dL)</label>               
+                    </div>
+                    <input id="currentBg" type="number" class="blood-sugar-input form-control mb-5 p-3" v-model.number="currentBg" placeholder="請輸入當前血糖值" />
             
-        </main>
+                </main>
 
-        <!-- CTA 按鈕，進行下一步 -->
-        <button type="button" class="start-prediction-button btn btn-primary btn-lg align-self-start "
-                v-on:click="goToStep2" :disabled="!currentBg">
-            開始進行預測
-        </button>
+                <!-- CTA 按鈕，進行下一步 -->
+                <button type="button" class="start-prediction-button btn btn-primary btn-lg align-self-start "
+                        v-on:click="goToStep2" :disabled="!currentBg">
+                    開始進行預測
+                </button>
+                <!-- end -->
+            </div>
+
+
+            <!-- B. 食物輸入頁 -->
+            <div v-if="step===2" class="container-fluid">
+                <!-- 食物輸入標題-->
+                <header class="content-header mb-4">
+                    <h2 class="section-title">食物輸入</h2>
+                </header>
+
+                <!-- 新增食物內容區 -->
+                <div class="food-manager mb-4 rounded">
+                    <section class="food-manager-container px-4 py-3">
+                        <div class="row gx-3 mb-3 align-items-end">
+
+                            <div class="col-md-4">
+                                <select class="form-select food-type-dropdown w-100 " v-model="selectedCategoryId">
+                                    <option value="">── Step 1. 選擇食物類型 ──</option>
+                                    <option v-for="c in categories" :key="c.food_category_id" :value="c.food_category_id">
+                                        {{ c.food_type }}
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-4">
+                                <select class="form-select food-type-dropdown w-100 " v-model="selectedFoodId">
+                                    <option disabled value="">── Step 2. 選擇該類型食物 ──</option>
+                                    <option v-for="f in filteredFoods" :key="f.food_id" :value="f.food_id">
+                                        {{ f.food_name }} (GI {{ f.glycemic_index }})
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end justify-content-end">
+                                <button class="add-food-button btn btn-primary d-flex align-items-center gap-2" v-on:click="addFood">
+                                    <img src="~/images/Plus.svg" alt="plus" class="plus-icon me-2" />
+                                    <span class="button-text">新增食物</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 分隔線 -->
+                        <div class="divider my-3"></div>
+
+                        <section class="empty-state text-center py-5"
+                                 v-if="foodInputs.length === 0">
+                            <div class="empty-icon-container">
+                                <img src="~/images/Empty.svg" class="empty-icon" alt="空值畫面圖示" />
+                            </div>
+                            <p class="empty-state-text">目前尚未新增資料</p>
+                        </section>
+                
+                        <div v-else>
+                            <div class="list-scroll overflow-auto" style="max-height:340px;">
+                                <ul class="list-group">
+                                    <li class="list-group-item d-flex align-items-center p-2"
+                                        v-for="(fi, i) in foodInputs"
+                                        :key="i">
+                                        <!-- A. 64×64 圓角框，內含 48×48 icon -->
+                                        <div class="d-flex align-items-center justify-content-center flex-shrink-0 rounded"
+                                             style="width:64px; height:64px; border:1px solid #ddd;">
+                                            <!-- 替換成你的 icon 圖片 -->
+                                            <img :src="`/images/food-icons/${ iconMap[fi.food_type] }`"
+                                                 :alt="fi.food_type"
+                                                 style="width:48px; height:48px;" />
+                                        </div>
+
+                                        <!-- B + C. 名稱＋類型 -->
+                                        <div class="ms-3">
+                                            <div class="fw-bold mt-1"
+                                                 style="font-size:15px; line-height:1.2;">
+                                                {{ fi.name }}
+                                            </div>
+                                            <div class="mt-1"
+                                                 style="font-size:15px; font-weight:500; line-height:1.2; color:#6c757d;">
+                                                ({{ fi.food_type }})
+                                            </div>
+                                        </div>
+
+                                        <!-- D. 份數調整 -->
+                                        <div class="portion-control ms-auto">
+                                            <button class="portion-btn"
+                                            v-on:click ="changePortion(foodInputs, i, -1, 'portion')">−</button>
+
+                                            <div class="portion-box">{{ fi.portion }} 份</div>
+
+                                            <button class="portion-btn"
+                                            v-on:click="changePortion(foodInputs, i, +1, 'portion')">＋</button>
+                                        </div>
+
+
+                                        <!-- E. 刪除按鈕（推到最右） -->
+                                        <button class="btn btn-outline-danger btn-sm ms-4 me-1"
+                                        v-on:click ="removeItem(foodInputs, i)">
+                                            刪除
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+        
+                <!-- CTA 按鈕，下一步 -->
+                <button class="start-prediction-button btn btn-primary btn-lg mt-4" v-on:click="goToStep3" :disabled="!foodInputs.length">下一步</button>
+            </div>
+
+            <!-- 運動輸入頁 -->
+            <div v-if="step===3" class="container-fluid">
+                <!-- 運動輸入標題-->
+                <header class="content-header mb-4">
+                    <h2 class="section-title">運動輸入</h2>
+                </header>
+
+                <!-- 新增運動內容區-->
+                <div class="food-manager mb-4 rounded">
+                    <section class="food-manager-container px-4 py-3">
+                        <div class="row gx-3 mb-3 align-items-end">
+
+                            <div class="col-md-4">
+                                <select class="form-select food-type-dropdown w-100 " v-model="selectedExId">
+                                    <option disabled value="">── Step 1. 選擇運動類型 ──</option>
+                                    <option v-for="e in exercises" :key="e.exercise_id" :value="e.exercise_id">
+                                        {{ e.exercise_name }}
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-4">
+                                <select class="form-select food-type-dropdown w-100 " v-model="selectedExPeriod">
+                                    <option disabled value="">── Step 2. 選擇餐前／餐後運動 ──</option>
+                                    <option value="BeforeMeal">餐前運動</option>
+                                    <option value="AfterMeal">餐後運動</option>
+                                </select>
+                            </div>                      
+                            <div class="col-md-4 d-flex align-items-end justify-content-end">
+                                <button class="add-food-button btn btn-primary d-flex align-items-center gap-2"
+                                        v-on:click="addExercise">
+                                    <img src="~/images/Plus.svg" alt="plus" class="plus-icon me-2" />
+                                    <span class="button-text">新增運動</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 分隔線 -->
+                        <div class="divider my-3"></div>
+
+                        <section class="empty-state text-center py-5" v-if="exerciseInputs.length === 0">
+                            <div class="empty-icon-container">
+                                <img src="~/images/Empty.svg" class="empty-icon" alt="空值畫面圖示" />
+                            </div>
+                            <p class="empty-state-text">目前尚未新增資料</p>
+                        </section>
+
+                        <div v-else>
+                            <div class="list-scroll overflow-auto" style="max-height:340px;">
+                                <ul class="list-group">
+                                    <li class="list-group-item d-flex align-items-center p-2" v-for="(ei, i) in exerciseInputs" :key="i">
+                                        <!-- A. 64×64 圓角框，內含 48×48 icon -->
+                                        <div class="d-flex align-items-center justify-content-center flex-shrink-0 rounded"
+                                             style="width:64px; height:64px; border:1px solid #ddd;">
+                                            <!-- 替換成你的 icon 圖片 -->
+                                            <img :src="`/images/exercise-icons/${ iconMap[ei.name] }`" :alt="ei.name"
+                                                 style="width:48px; height:48px;" />
+                                        </div>
+
+                                        <!-- B + C. 名稱＋類型 -->
+                                        <div class="ms-3">
+                                            <div class="fw-bold mt-1" style="font-size:15px; line-height:1.2;">
+                                                {{ ei.name }}
+                                            </div>
+                                            <div class="mt-1"
+                                                 style="font-size:15px; font-weight:500; line-height:1.2; color:#6c757d;">
+                                                ({{ ei.type }})
+                                            </div>
+                                        </div>
+
+                                        {{ ei.name }}：{{ ei.durationMin }} 分 &nbsp;
+                                        <small class="text-muted">({{ ei.period === 'BeforeMeal' ? '餐前' : '餐後' }})</small>
+                                        <span class="float-end">
+                                            <button class="btn btn-sm btn-outline-secondary me-1" v-on:click="changePortion(exerciseInputs, i, -5, 'durationMin')">-5</button>
+                                            <button class="btn btn-sm btn-outline-secondary me-1" v-on:click="changePortion(exerciseInputs, i, +5, 'durationMin')">+5</button>
+                                            <button class="btn btn-sm btn-danger" v-on:click="removeItem(exerciseInputs, i)">刪除</button>
+                                        </span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        @* <div class="col-md-4 d-flex align-items-end justify-content-end"> *@
+                        @*     <label class="form-label">運動時長 (分鐘)</label> *@
+                        @*     <input type="number" class="form-control" v-model.number="selectedExDuration" min="1" /> *@
+                        @* </div> *@
+                                           
+                        </section>
+                </div>
+
+                <!-- CTA 按鈕，下一步 -->
+                <button class="start-prediction-button btn btn-primary btn-lg mt-4" v-on:click="goToStep4"
+                        :disabled="!exerciseInputs.length">
+                    下一步
+                </button>
+            </div>
+
+            <!-- Step 4：顯示結果 -->
+            <div v-if="step===4">
+                <h3>步驟 4：2 小時血糖趨勢預測</h3>
+                <canvas id="trendChart" height="200"></canvas>
+                <div class="mt-3">
+                    <button class="btn btn-secondary me-2" v-on:click="step=3">上一步：輸入運動</button>
+                    <button class="btn btn-success" v-on:click ="predict">重新預測</button>
+                </div>
+            </div>
+        </section>
         <!-- end -->
     </div>
-
-
-    <!-- B. 食物輸入頁 -->
-    <div v-if="step===2" class="container-fluid">
-        <!-- 食物輸入標題-->
-        <header class="content-header mb-4">
-            <h2 class="section-title">食物輸入</h2>
-        </header>
-
-        <!-- 進度條-->
-        <section class="progress-stepper d-flex justify-content-center align-items-center mb-4">
-            <!-- 食物輸入進度條 -->
-            <article class="step-item d-flex flex-column align-items-center me-3">
-                <div>
-                    <img src="~/images/Done_Progress_bar.svg" class="check-icon mb-2 text-primary" />
-                </div>
-                <p class="step-text-completed">輸入飲食資料</p>
-            </article>
-
-            <!-- 進度線條1 -->
-            <div class="progress-bar-container flex-fill mx-2">
-                <div class="progress-bar-completed"></div>
-            </div>
-
-            <!-- 運動輸入進度條 -->
-            <article class="step-item d-flex flex-column align-items-center mx-3">
-                <div>
-                    <img src="~/images/Noyet_Progress_bar.svg" class="clock-icon mb-2 text-muted" />
-                </div>
-                <p class="step-text-pending text-muted">輸入運動資料</p>
-            </article>
-
-            <!-- 進度線條2 -->
-            <div class="progress-bar-container flex-fill mx-2">
-                <div class="progress-bar-pending"></div>
-            </div>
-
-            <!-- 預測結果進度條 -->
-            <article class="step-item d-flex flex-column align-items-center ms-3">
-                <div>
-                    <img src="~/images/Noyet_Progress_bar.svg" class="clock-icon mb-2 text-muted" />
-                </div>
-                <p class="step-text-pending text-muted">查看預測結果</p>
-            </article>
-        </section>
-
-        <!-- 新增食物內容區 -->
-        <div class="food-manager mb-4 rounded">
-            <section class="food-manager-container px-4 py-3">
-                <div class="row gx-3 mb-3 align-items-end">
-
-                    <div class="col-md-4">
-                        <select class="form-select food-type-dropdown w-100 " v-model="selectedCategoryId">
-                            <option value="">── Step 1. 選擇食物類型 ──</option>
-                            <option v-for="c in categories" :key="c.food_category_id" :value="c.food_category_id">
-                                {{ c.food_type }}
-                            </option>
-                        </select>
-                    </div>
-
-                    <div class="col-md-4">
-                        <select class="form-select food-type-dropdown w-100 " v-model="selectedFoodId">
-                            <option disabled value="">── Step 2. 選擇該類型食物 ──</option>
-                            <option v-for="f in filteredFoods" :key="f.food_id" :value="f.food_id">
-                                {{ f.food_name }} (GI {{ f.glycemic_index }})
-                            </option>
-                        </select>
-                    </div>
-                    <div class="col-md-4 d-flex align-items-end justify-content-end">
-                        <button class="add-food-button btn btn-primary d-flex align-items-center gap-2" v-on:click="addFood">
-                            <img src="~/images/Plus.svg" alt="plus" class="plus-icon me-2" />
-                            <span class="button-text">新增食物</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 分隔線 -->
-                <div class="divider my-3"></div>
-
-                <div class="list-scroll overflow-auto" style="max-height:340px;">
-                    <ul class="list-group">
-                        <li class="list-group-item d-flex align-items-center p-2"
-                            v-for="(fi, i) in foodInputs"
-                            :key="i">
-                            <!-- A. 64×64 圓角框，內含 48×48 icon -->
-                            <div class="d-flex align-items-center justify-content-center flex-shrink-0 rounded"
-                                 style="width:64px; height:64px; border:1px solid #ddd;">
-                                <!-- 替換成你的 icon 圖片 -->
-                                <img :src="`/images/food-icons/${ iconMap[fi.food_type] }`"
-                                     :alt="fi.food_type"
-                                     style="width:48px; height:48px;" />
-                            </div>
-
-                            <!-- B + C. 名稱＋類型 -->
-                            <div class="ms-3">
-                                <div class="fw-bold mt-1"
-                                     style="font-size:15px; line-height:1.2;">
-                                    {{ fi.name }}
-                                </div>
-                                <div class="mt-1"
-                                     style="font-size:15px; font-weight:500; line-height:1.2; color:#6c757d;">
-                                    ({{ fi.food_type }})
-                                </div>
-                            </div>
-
-                            <!-- D. 份數調整 -->
-                            <div class="d-flex align-items-center ms-auto">
-                                <button class="btn btn-outline-secondary btn-sm"
-                                        v-on:click="changePortion(foodInputs, i, -1, 'portion')">
-                                    −
-                                </button>
-
-                                <span class="px-2 text-center"
-                                      style="min-width:40px; font-size:15px;">
-                                    {{ fi.portion }} 份
-                                </span>
-
-                                <button class="btn btn-outline-secondary btn-sm"
-                                        v-on:click="changePortion(foodInputs, i, +1, 'portion')">
-                                    ＋
-                                </button>
-                            </div>
-
-                            <!-- E. 刪除按鈕（推到最右） -->
-                            <button class="btn btn-danger btn-sm ms-4 me-1"
-                            v-on:click ="removeItem(foodInputs, i)">
-                                刪除
-                            </button>
-                        </li>
-                    </ul>
-                </div>
-            </section>
-        </div>
-        
-        <!-- CTA 按鈕，下一步 -->
-        <button class="start-prediction-button btn btn-primary btn-lg" v-on:click="goToStep3" :disabled="!foodInputs.length">下一步</button>
-    </div>
-
-    <!-- Step 3：輸入運動資料，選擇時段：餐前／餐後 -->
-    <div v-if="step===3">
-        <h3>步驟 3：輸入運動資料</h3>
-        <div class="row mb-3">
-            <div class="col-md-6">
-                <label class="form-label">選擇運動</label>
-                <select class="form-select" v-model="selectedExId">
-                    <option disabled value="">── 選擇運動 ──</option>
-                    <option v-for="e in exercises" :key="e.exercise_id" :value="e.exercise_id">
-                        {{ e.exercise_name }}
-                    </option>
-                </select>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label">運動時段</label>
-                <select class="form-select" v-model="selectedExPeriod">
-                    <option disabled value="">── 餐前／餐後 ──</option>
-                    <option value="BeforeMeal">餐前運動</option>
-                    <option value="AfterMeal">餐後運動</option>
-                </select>
-            </div>
-        </div>
-        <div class="row mb-3">
-            <div class="col-md-4">
-                <label class="form-label">運動時長 (分鐘)</label>
-                <input type="number" class="form-control" v-model.number="selectedExDuration" min="1" />
-            </div>
-            <div class="col-md-8 d-flex align-items-end">
-                <button class="btn btn-primary w-100" v-on:click="addExercise">新增運動</button>
-            </div>
-        </div>
-        <ul class="list-group mb-3">
-            <li class="list-group-item" v-for="(ei, i) in exerciseInputs" :key="i">
-                {{ ei.name }}：{{ ei.durationMin }} 分 &nbsp;
-                <small class="text-muted">({{ ei.period === 'BeforeMeal' ? '餐前' : '餐後' }})</small>
-                <span class="float-end">
-                    <button class="btn btn-sm btn-outline-secondary me-1" v-on:click="changePortion(exerciseInputs, i, -5, 'durationMin')">-5</button>
-                    <button class="btn btn-sm btn-outline-secondary me-1" v-on:click="changePortion(exerciseInputs, i, +5, 'durationMin')">+5</button>
-                    <button class="btn btn-sm btn-danger" v-on:click="removeItem(exerciseInputs, i)">刪除</button>
-                </span>
-            </li>
-        </ul>
-        <button class="btn btn-secondary me-2" v-on:click="step=2">上一步：輸入飲食</button>
-        <button class="btn btn-success" v-on:click="goToStep4" :disabled="!exerciseInputs.length">下一步：預測結果</button>
-    </div>
-
-    <!-- Step 4：顯示結果 -->
-    <div v-if="step===4">
-        <h3>步驟 4：2 小時血糖趨勢預測</h3>
-        <canvas id="trendChart" height="200"></canvas>
-        <div class="mt-3">
-            <button class="btn btn-secondary me-2" v-on:click="step=3">上一步：輸入運動</button>
-            <button class="btn btn-success" v-on:click ="predict">重新預測</button>
-        </div>
-    </div>
-</section>
-<!-- end -->
+</main>
 
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
@@ -254,7 +305,7 @@
           step: 1,
           predictTime: new Date().toISOString().slice(0,16),
           currentBg: null,
-          categories: [], foods: [], exercises: [],
+          categories: [], foods: [], exercises: [], exerciseCategories: [],
           selectedCategoryId: '',
           selectedFoodId: '', selectedFoodPortion: 1,
           selectedExId: '', selectedExPeriod: '', selectedExDuration: 30,
@@ -266,7 +317,10 @@
             '水果 / Fruits':        'fruits.svg',
             '蔬菜 / Vegetables':    'vegetables.svg',
             '蛋豆魚肉 / Proteins':      'proteins.svg',
-            '乳品與堅果 / Dairy & Nuts':   'dairy-nuts.svg'
+            '乳品與堅果 / Dairy & Nuts':   'dairy-nuts.svg',
+            '超慢跑(Zone2 訓練)': 'ultra-jogging.svg',
+            '深蹲': 'squat.svg',
+            '弓箭步': 'lunge.svg'
           }
         };
       },
@@ -278,14 +332,16 @@
         }
       },
       async mounted() {
-        const [catRes, foodRes, exRes] = await Promise.all([
+        const [foodCatRes, foodRes, exRes, exCatRes] = await Promise.all([
           axios.get('/api/v1/history/foodcategories'),
           axios.get('/api/v1/history/foods'),
-          axios.get('/api/v1/history/exercises')
+          axios.get('/api/v1/history/exercises'),
+          axios.get('/api/v1/history/exercisecategories')
         ]);
-        this.categories = catRes.data;
+        this.categories = foodCatRes.data;
         this.foods = foodRes.data;
         this.exercises = exRes.data;
+        this.exerciseCategories = exCatRes.data;
       },
       methods: {
         toggleHidden() {this.warningIsHidden = true;},
@@ -311,11 +367,21 @@
         },
         addExercise() {
           if (!this.selectedExId || !this.selectedExPeriod) return;
+
           const e = this.exercises.find(x => x.exercise_id === this.selectedExId);
+            // 用 exercise_category_id 去找對應的 exercise_type
+          const cat = this.exerciseCategories.find(
+                c => c.exercise_category_id === e.exercise_category_id
+          );
+
           this.exerciseInputs.push({
-            exerciseId: e.exercise_id, name: e.exercise_name,
-            durationMin: this.selectedExDuration, period: this.selectedExPeriod
+            exerciseId:  e.exercise_id,
+            name:        e.exercise_name,
+            period:      this.selectedExPeriod,
+            durationMin: this.selectedExDuration,
+            type:        cat ? cat.exercise_type : ''  // ← 這行是關鍵
           });
+
           this.selectedExDuration = 30;
         },
         removeItem(arr, i) { arr.splice(i, 1); },

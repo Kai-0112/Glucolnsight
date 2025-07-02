@@ -213,13 +213,44 @@ namespace GlucoInsight.Controllers
                 fv.ExerciseMets = mets;
             }
 
+            // **這裡新增：查出所有 req.ExerciseInputs 裡的 exercise_id 對應的 name + type **
+            var exerciseDetails = await (
+                from i in _ctx.ExerciseItem
+                join c in _ctx.ExerciseCategory
+                  on i.exercise_category_id equals c.exercise_category_id
+                where req.ExerciseInputs.Select(x => x.ExerciseId).Contains(i.exercise_id)
+                select new
+                {
+                    i.exercise_id,
+                    Name = i.exercise_name,
+                    Type = c.exercise_type
+                }
+            ).ToListAsync();
+
             // 4) 多步預測
             var preds = _ml.PredictAhead(fv);
+
+            // 5) 組裝回傳 DTO
+            var exerciseDtos = req.ExerciseInputs
+                .Select(ei => {
+                    var d = exerciseDetails.First(x => x.exercise_id == ei.ExerciseId);
+                    return new ExerciseInput
+                    {
+                        ExerciseId = ei.ExerciseId,
+                        Name = d.Name,
+                        ExerciseType = d.Type,
+                        DurationMin = ei.DurationMin,
+                        Period = ei.Period,
+                        EventTime = ei.EventTime
+                    };
+                })
+                .ToList();
 
             return Ok(new PredictionMultiResultDto
             {
                 Input = fv,
-                PredictedBgs = preds
+                PredictedBgs = preds,
+                ExerciseInputs = exerciseDtos
             });
         }
     }

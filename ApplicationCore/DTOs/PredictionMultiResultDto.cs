@@ -13,5 +13,6 @@ namespace ApplicationCore.DTOs
     {
         public FeatureVector Input { get; set; }
         public float[] PredictedBgs { get; set; }
+        public List<ExerciseInput> ExerciseInputs { get; set; }
     }
 }

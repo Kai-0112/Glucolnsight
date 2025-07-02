@@ -30,7 +30,7 @@ body {
     border-radius: 1rem;
     background-color: rgba(255, 255, 255, 1);
     border: 0.125rem solid rgba(231, 231, 233, 1);
-    padding: 1.25rem 0.125rem 23.75rem 0.0625rem;
+    padding: 1.25rem 0.125rem 19.55rem 0.125rem;
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -122,7 +122,6 @@ a.nav-item:visited:hover {
 .info-icon {
     width: 2.5rem;
     height: 2.5rem;
-    ;
 }
 
 .info-message {
@@ -248,6 +247,16 @@ a.nav-item:visited:hover {
 .start-prediction-button.btn-primary.active {
     background-color: #2ba7b5;
     border-color: #2ba7b5;
+    box-shadow: none;
+}
+
+/* 「下一步」按鈕 disabled 時使用原色的半透明 */
+.start-prediction-button.btn-primary:disabled,
+.start-prediction-button.btn-primary[disabled] {
+    background-color: rgba(51, 195, 217, 0.4) !important;
+    border-color: rgba(51, 195, 217, 0.4) !important;
+    color: #ffffff !important; /* 保留白字 */
+    cursor: not-allowed;
     box-shadow: none;
 }
 
@@ -557,6 +566,18 @@ a.nav-item:visited:hover {
     background-color: #33c3d9;
 }
 
+/* 新增食物按鈕的主色 */
+.add-food-button.btn-primary {
+    background-color: #33c3d9;
+    border-color: #33c3d9;
+}
+
+.add-food-button.btn-primary:hover {
+    background-color: #2ba7b5;
+    border-color: #2ba7b5;
+}
+
+
 .plus-icon {
     width: 2rem;
     /* 32px */
@@ -714,18 +735,41 @@ a.nav-item:visited:hover {
 }
 
 /* D. 份數控制群組 */
+/* 容器 */
 .portion-control {
     display: flex;
     align-items: center;
-    gap: 8px;
 }
 
-    /* 份數文字 */
-    .portion-control .portion {
-        min-width: 40px;
-        text-align: center;
-        font-size: 15px;
-    }
+/* + 與 - 按鈕 */
+.portion-btn {
+    width: 24px;
+    height: 24px;
+    background-color: #33C3D9;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 4px; /* 可依設計再調 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    padding: 0; /* 取消預設內距 */
+}
+
+/* 份數框 */
+.portion-box {
+    width: 52px;
+    height: 40px;
+    margin: 0 16px; /* 左右各 16px 間距 */
+    border: 2px solid #E0E0E0;
+    border-radius: 4px; /* 可依設計再調 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 15px;
+    font-weight: 500;
+}
+
 
 /* E. 刪除按鈕（靠最右） */
 .btn-delete {
