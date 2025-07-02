@@ -658,6 +658,81 @@ a.nav-item:visited:hover {
     }
 }
 
+/* 食物和運動輸入資料 */
+/* 整體清單重置 */
+.food-item-card-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* 每一列卡片 */
+.food-item-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background-color: #fff;
+    /* 如果要加陰影： */
+    /* box-shadow: 0 1px 3px rgba(0,0,0,0.1); */
+    margin-bottom: 8px;
+}
+
+/* A. icon 容器 */
+.icon-box {
+    flex-shrink: 0;
+    width: 64px;
+    height: 64px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+/* 若日後要放圖片，可這樣： */
+/*
+.icon-box img {
+  width: 48px;
+  height: 48px;
+}
+*/
+
+/* B. 食物名稱 */
+.food-info .food-name {
+    font-size: 15px;
+    font-weight: bold;
+    line-height: 1.2;
+}
+
+/* C. 食物類型 */
+.food-info .food-type {
+    font-size: 15px;
+    font-weight: 500; /* Medium */
+    color: #666;
+    line-height: 1.2;
+}
+
+/* D. 份數控制群組 */
+.portion-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+    /* 份數文字 */
+    .portion-control .portion {
+        min-width: 40px;
+        text-align: center;
+        font-size: 15px;
+    }
+
+/* E. 刪除按鈕（靠最右） */
+.btn-delete {
+    margin-left: auto;
+}
+
+
 /* End */
 
 /*--------------------------------------------------------------------------------------------*/

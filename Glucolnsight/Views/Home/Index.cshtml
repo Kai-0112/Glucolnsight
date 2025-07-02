@@ -125,16 +125,58 @@
                 <!-- 分隔線 -->
                 <div class="divider my-3"></div>
 
-                <ul class="list-group mb-3">
-                    <li class="list-group-item" v-for="(fi, i) in foodInputs" :key="i">
-                        {{ fi.name }}：{{ fi.portion }} 份
-                        <span class="float-end">
-                            <button class="btn btn-sm btn-outline-secondary me-1" v-on:click="changePortion(foodInputs, i, -1, 'portion')">-</button>
-                            <button class="btn btn-sm btn-outline-secondary me-1" v-on:click="changePortion(foodInputs, i, +1, 'portion')">+</button>
-                            <button class="btn btn-sm btn-danger" v-on:click="removeItem(foodInputs, i)">刪除</button>
-                        </span>
-                    </li>
-                </ul>
+                <div class="list-scroll overflow-auto" style="max-height:340px;">
+                    <ul class="list-group">
+                        <li class="list-group-item d-flex align-items-center p-2"
+                            v-for="(fi, i) in foodInputs"
+                            :key="i">
+                            <!-- A. 64×64 圓角框，內含 48×48 icon -->
+                            <div class="d-flex align-items-center justify-content-center flex-shrink-0 rounded"
+                                 style="width:64px; height:64px; border:1px solid #ddd;">
+                                <!-- 替換成你的 icon 圖片 -->
+                                <img :src="`/images/food-icons/${ iconMap[fi.food_type] }`"
+                                     :alt="fi.food_type"
+                                     style="width:48px; height:48px;" />
+                            </div>
+
+                            <!-- B + C. 名稱＋類型 -->
+                            <div class="ms-3">
+                                <div class="fw-bold mt-1"
+                                     style="font-size:15px; line-height:1.2;">
+                                    {{ fi.name }}
+                                </div>
+                                <div class="mt-1"
+                                     style="font-size:15px; font-weight:500; line-height:1.2; color:#6c757d;">
+                                    ({{ fi.food_type }})
+                                </div>
+                            </div>
+
+                            <!-- D. 份數調整 -->
+                            <div class="d-flex align-items-center ms-auto">
+                                <button class="btn btn-outline-secondary btn-sm"
+                                        v-on:click="changePortion(foodInputs, i, -1, 'portion')">
+                                    −
+                                </button>
+
+                                <span class="px-2 text-center"
+                                      style="min-width:40px; font-size:15px;">
+                                    {{ fi.portion }} 份
+                                </span>
+
+                                <button class="btn btn-outline-secondary btn-sm"
+                                        v-on:click="changePortion(foodInputs, i, +1, 'portion')">
+                                    ＋
+                                </button>
+                            </div>
+
+                            <!-- E. 刪除按鈕（推到最右） -->
+                            <button class="btn btn-danger btn-sm ms-4 me-1"
+                            v-on:click ="removeItem(foodInputs, i)">
+                                刪除
+                            </button>
+                        </li>
+                    </ul>
+                </div>
             </section>
         </div>
         
@@ -197,7 +239,6 @@
             <button class="btn btn-success" v-on:click ="predict">重新預測</button>
         </div>
     </div>
-</div>
 </section>
 <!-- end -->
 
@@ -218,7 +259,15 @@
           selectedFoodId: '', selectedFoodPortion: 1,
           selectedExId: '', selectedExPeriod: '', selectedExDuration: 30,
           foodInputs: [], exerciseInputs: [],
-          chart: null, predictedBgs: []
+          chart: null, predictedBgs: [],
+          iconMap: {
+            '全穀雜糧 / Whole grains': 'whole-grains.svg',
+            '點心 / Dessert':       'dessert.svg',
+            '水果 / Fruits':        'fruits.svg',
+            '蔬菜 / Vegetables':    'vegetables.svg',
+            '蛋豆魚肉 / Proteins':      'proteins.svg',
+            '乳品與堅果 / Dairy & Nuts':   'dairy-nuts.svg'
+          }
         };
       },
       computed: {
@@ -245,10 +294,19 @@
         goToStep4() { this.step = 4; this.$nextTick(this.predict); },
         addFood() {
           if (!this.selectedFoodId) return;
+          // 1. 找到被選中的食物跟類別
           const f = this.foods.find(x => x.food_id === this.selectedFoodId);
+          const c = this.categories.find(x => x.food_category_id === this.selectedCategoryId);
+
+          // 2. 推入 foodInputs，並把 food_type 一併帶入
           this.foodInputs.push({
-            foodId: f.food_id, name: f.food_name, portion: this.selectedFoodPortion
+            foodId: f.food_id,
+            name: f.food_name,
+            portion: this.selectedFoodPortion,
+            food_type: c.food_type        // ← 這行是新增的
           });
+
+          // 重置選擇
           this.selectedFoodPortion = 1;
         },
         addExercise() {
