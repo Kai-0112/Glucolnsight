@@ -787,14 +787,42 @@ a.nav-item:visited:hover {
     width: 100%;
     height: 80px;
     border-radius: 12px;
-    border: 1px solid #d48a15;
-    background-color: #fffbe6;
-    /* Bootstrap flex */
     display: flex;
     align-items: center;
     padding: 0 32px;
-    margin: 0 auto;
+    margin: 0 auto 1rem;
 }
+
+/* Critical（<70 or >250）*/
+.alert-critical {
+    border: 1px solid #f44336; /* 紅 500 */
+    background-color: #ffebee; /* 紅 50 */
+}
+
+    .alert-critical .warning-message {
+        color: #44494E;
+    }
+
+/* Warning（<90 or >200）*/
+.alert-warning {
+    border: 1px solid #fbc02d; /* 黃 500 */
+    background-color: #fffde7; /* 黃 50 */
+}
+
+    .alert-warning .warning-message {
+        color: #44494E;
+    }
+
+/* Safe（90–200）*/
+.alert-safe {
+    border: 1px solid #4caf50; /* 綠 500 */
+    background-color: #e8f5e9; /* 綠 50 */
+}
+
+    .alert-safe .warning-message {
+        color: #44494E;
+    }
+
 
 .warning-icon-wrapper {
     display: flex;
@@ -809,8 +837,6 @@ a.nav-item:visited:hover {
 }
 
 .warning-message {
-    color: #44494e;
-    letter-spacing: 0.1px;
     flex: 1;
     font: 700 20px 'Lato', sans-serif;
     line-height: 1.2;

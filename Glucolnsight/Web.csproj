@@ -35,6 +35,7 @@
 	<ItemGroup>
 	  <Folder Include="wwwroot\images\food-icons\" />
 	  <Folder Include="wwwroot\images\exercise-icons\" />
+	  <Folder Include="wwwroot\images\status-icons\" />
 	</ItemGroup>
 	
 	

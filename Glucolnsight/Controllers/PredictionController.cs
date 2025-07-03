@@ -240,6 +240,7 @@ namespace GlucoInsight.Controllers
                         Name = d.Name,
                         ExerciseType = d.Type,
                         DurationMin = ei.DurationMin,
+                        SetsCount = ei.SetsCount,
                         Period = ei.Period,
                         EventTime = ei.EventTime
                     };
