@@ -252,24 +252,49 @@
                                             </div>
                                         </div>
 
-                                        {{ ei.name }}：{{ ei.durationMin }} 分 &nbsp;
-                                        <small class="text-muted">({{ ei.period === 'BeforeMeal' ? '餐前' : '餐後' }})</small>
-                                        <span class="float-end">
-                                            <button class="btn btn-sm btn-outline-secondary me-1" v-on:click="changePortion(exerciseInputs, i, -5, 'durationMin')">-5</button>
-                                            <button class="btn btn-sm btn-outline-secondary me-1" v-on:click="changePortion(exerciseInputs, i, +5, 'durationMin')">+5</button>
-                                            <button class="btn btn-sm btn-danger" v-on:click="removeItem(exerciseInputs, i)">刪除</button>
-                                        </span>
+                                        <!-- D. 運動時長&組數調整 -->
+                                        <!-- 餐前/餐後 下拉 -->
+                                        <div class="ms-auto me-3">
+                                            <select class="form-select form-select-sm"
+                                                    v-model="ei.period">
+                                                <option value="BeforeMeal">餐前運動</option>
+                                                <option value="AfterMeal">餐後運動</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- 有氧運動：選運動時長 -->
+                                        <div class="me-3" v-if="ei.type==='有氧運動'">
+                                            <select class="form-select form-select-sm w-auto"
+                                                    v-model.number="ei.durationMin">
+                                                <option :value="15">運動時長 : 15 分</option>
+                                                <option :value="30">運動時長 : 30 分</option>
+                                                <option :value="60">運動時長 : 60 分</option>
+                                                <option :value="90">運動時長 : 60 分以上</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- 重量訓練：選組數 -->
+                                        <div class="me-3" v-else-if="ei.type==='重量訓練'">
+                                            <select class="form-select form-select-sm w-auto"
+                                                    v-model.number="ei.setsCount">
+                                                <option :value="1">運動組數 : 1 組</option>
+                                                <option :value="2">運動組數 : 2 組</option>
+                                                <option :value="3">運動組數 : 3 組</option>
+                                                <option :value="4">運動組數 : 3 組以上</option>
+                                            </select>
+                                        </div>
+
+
+                                        <!-- E. 刪除按鈕（推到最右） -->
+                                        <button class="btn btn-outline-danger btn-sm ms-4 me-1"
+                                                v-on:click="removeItem(exerciseInputs, i)">
+                                            刪除
+                                        </button>                 
                                     </li>
                                 </ul>
                             </div>
-                        </div>
-
-                        @* <div class="col-md-4 d-flex align-items-end justify-content-end"> *@
-                        @*     <label class="form-label">運動時長 (分鐘)</label> *@
-                        @*     <input type="number" class="form-control" v-model.number="selectedExDuration" min="1" /> *@
-                        @* </div> *@
-                                           
-                        </section>
+                        </div>                                  
+                    </section>
                 </div>
 
                 <!-- CTA 按鈕，下一步 -->
@@ -379,7 +404,9 @@
             name:        e.exercise_name,
             period:      this.selectedExPeriod,
             durationMin: this.selectedExDuration,
-            type:        cat ? cat.exercise_type : ''  // ← 這行是關鍵
+            type:        cat ? cat.exercise_type : '' ,
+            durationMin: cat.exercise_type === '有氧運動' ? 30 : null,
+            setsCount:   cat.exercise_type === '重量訓練' ? 1  : null
           });
 
           this.selectedExDuration = 30;
